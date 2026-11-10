@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Unofficial fan-made Monte Carlo simulator for the 2026/27 English top-flight season: actual tables, projections by matchweek, title, top-4 and relegation odds.">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Unofficial PL 26/27 Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600&display=swap">
+<style>
+/* Layout: a matchday programme — settings strip, a matchweek dial, then a focus column (your club) beside the table. */
+:root{
+  --bg:#f6f2f1; --surface:#ffffff; --ink:#1c1416; --muted:#6e6164; --line:#e5dbdb;
+  --accent:#c8102e; --accent-ink:#ffffff; --accent-soft:rgba(200,16,46,.10); --band:rgba(200,16,46,.16);
+  --good:#23845a; --warn:#b4761a; --cell:#c8102e; --proj:#3d5a8c; --proj-soft:rgba(61,90,140,.12);
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"Barlow","Helvetica Neue",Arial,sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131011; --surface:#1c1719; --ink:#f3ebeb; --muted:#a7999b; --line:#342b2e;
+  --accent:#ff4a5c; --accent-ink:#1c1416; --accent-soft:rgba(255,74,92,.14); --band:rgba(255,74,92,.20);
+  --good:#4cc08a; --warn:#e3a84a; --cell:#ff4a5c; --proj:#8fb0e8; --proj-soft:rgba(143,176,232,.14); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131011; --surface:#1c1719; --ink:#f3ebeb; --muted:#a7999b; --line:#342b2e;
+  --accent:#ff4a5c; --accent-ink:#1c1416; --accent-soft:rgba(255,74,92,.14); --band:rgba(255,74,92,.20);
+  --good:#4cc08a; --warn:#e3a84a; --cell:#ff4a5c; --proj:#8fb0e8; --proj-soft:rgba(143,176,232,.14); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:3px solid var(--ink);padding-bottom:12px}
+.eyebrow{font-family:var(--cond);text-transform:uppercase;letter-spacing:.12em;font-size:13px;color:var(--muted);font-weight:600}
+h1{font-family:var(--display);font-weight:900;font-size:clamp(34px,6vw,58px);line-height:.92;margin:4px 0 0;text-transform:uppercase;letter-spacing:.01em;text-wrap:balance}
+h1 span{color:var(--accent)}
+.asof{font-family:var(--cond);font-size:14px;color:var(--muted);text-align:right}
+h2{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:24px;margin:0;letter-spacing:.02em;text-wrap:balance}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ctl label{font-family:var(--cond);text-transform:uppercase;letter-spacing:.1em;font-size:12px;color:var(--muted);font-weight:600}
+select,button{font:inherit;color:var(--ink)}
+select{background:var(--surface);border:1px solid var(--line);padding:7px 10px;border-radius:2px}
+input[type=range]{accent-color:var(--accent)}
+#form{width:170px}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.status{font-family:var(--cond);font-size:14px;color:var(--muted);margin-left:auto}
+
+/* matchweek dial */
+.dial{background:var(--ink);color:var(--bg);padding:16px 18px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 22px;align-items:center}
+@media (max-width:640px){.dial{grid-template-columns:auto minmax(0,1fr)}.dial .play{grid-column:1/-1}}
+.mwnum{font-family:var(--display);font-weight:900;line-height:.85;font-size:64px;font-variant-numeric:tabular-nums;min-width:2.2ch;text-align:right}
+.mwlab{font-family:var(--cond);text-transform:uppercase;letter-spacing:.12em;font-size:12px;opacity:.7}
+.mwstate{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pill{font-family:var(--cond);font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:13px;padding:2px 9px;border-radius:2px}
+.pill.played{background:var(--bg);color:var(--ink)}
+.pill.live{background:var(--accent);color:var(--accent-ink)}
+.pill.proj{background:var(--proj);color:var(--bg)}
+.mwdesc{font-size:14px;opacity:.85}
+.track{grid-column:2;position:relative;padding-bottom:20px;min-width:0}
+@media (max-width:640px){.track{grid-column:1/-1}}
+#mw{width:100%;margin:6px 0 0}
+.ticks{position:absolute;left:8px;right:8px;bottom:0;height:16px;font-family:var(--cond);font-size:12px;opacity:.75}
+.ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.ticks .now{color:var(--accent);opacity:1;font-weight:600}
+.mwrow{display:flex;align-items:center;gap:6px}
+.mwrow .mwnum{min-width:2ch;text-align:center}
+.step{flex:none;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:2px;cursor:pointer}
+.step:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.step:disabled{opacity:.3;cursor:default}
+.dial .step{background:transparent;color:var(--bg);border-color:var(--muted)}
+.dial .step:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.stephead{display:flex;align-items:center;gap:8px;min-width:0}
+.stephead h2{min-width:0}
+.stephead .step{order:-1}
+.stephead .step[data-step="1"]{margin-right:4px}
+.splitbar{position:absolute;left:8px;right:8px;top:0;height:4px;display:flex}
+.play{background:var(--accent);color:var(--accent-ink);border:0;padding:9px 18px;font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:18px;letter-spacing:.04em;cursor:pointer;border-radius:2px;grid-row:1/span 2;grid-column:3}
+@media (max-width:640px){.play{grid-row:auto;grid-column:1/-1}}
+
+.grid{display:grid;grid-template-columns:minmax(0,390px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.focus-head{border-left:6px solid var(--accent);padding-left:12px}
+.focus-team{font-family:var(--display);font-weight:900;font-size:40px;line-height:.95;text-transform:uppercase}
+.focus-line{font-size:15px;color:var(--muted)}
+.focus-line b{color:var(--ink);font-variant-numeric:tabular-nums}
+.chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.chip{border:1px solid var(--line);padding:8px 6px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.chip .v{font-family:var(--display);font-weight:800;font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
+.chip .k{font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--muted)}
+.chip.hot{border-color:var(--accent);background:var(--accent-soft)}
+svg text{font-family:var(--cond)}
+.note{font-size:13px;color:var(--muted);margin:0}
+.key{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);font-family:var(--cond)}
+.key span::before{content:"";display:inline-block;width:16px;height:3px;vertical-align:middle;margin-right:5px;background:var(--c)}
+.key span.area::before{height:9px}
+
+.fixtures{display:flex;flex-direction:column;gap:7px}
+.fx{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;border-top:1px solid var(--line);padding-top:7px}
+.fx.sel .fx-teams{color:var(--accent)}
+.fx-teams{font-weight:600;min-width:0}
+.fx-teams .sc{font-family:var(--display);font-weight:800;font-size:17px;padding:0 4px}
+.fx-meta{font-family:var(--cond);color:var(--muted);font-size:13px;text-align:right;white-space:nowrap}
+.bar3{grid-column:1/-1;display:flex;height:18px;font-family:var(--cond);font-size:12px;font-weight:600;gap:1px}
+.bar3 div{display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;color:var(--bg)}
+.bar3 .h{background:var(--ink)} .bar3 .d{background:var(--muted)} .bar3 .a{background:var(--accent);color:var(--accent-ink)}
+.bar3.res div{opacity:.28}
+.bar3.res div.hit{opacity:1;box-shadow:inset 0 0 0 2px var(--ink)}
+
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;min-width:760px}
+th{font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-size:12px;color:var(--muted);font-weight:600;text-align:right;padding:6px 7px;border-bottom:2px solid var(--ink);white-space:nowrap}
+th.grp{border-bottom:0;padding-bottom:0;text-align:left;font-size:12px}
+th.grp.a{color:var(--ink)} th.grp.p{color:var(--proj)}
+th.l,td.l{text-align:left}
+td{padding:6px 7px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+td.sep,th.sep{border-left:2px solid var(--line)}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--accent-soft)}
+tbody tr.sel{background:var(--accent-soft);box-shadow:inset 4px 0 0 var(--accent)}
+tbody tr.cut4 td{border-bottom:2px solid var(--good)}
+tbody tr.cut17 td{border-bottom:2px solid var(--warn)}
+td.pos{font-family:var(--display);font-weight:800;font-size:17px;text-align:left;width:30px}
+td.team{font-weight:600}
+td.b{font-weight:700}
+td.proj{color:var(--proj)}
+td.proj.b{color:var(--proj)}
+.mv{font-family:var(--cond);font-size:12px;margin-left:4px}
+.mv.up{color:var(--good)} .mv.dn{color:var(--accent)}
+.prev{font-family:var(--cond);color:var(--muted);font-size:12px;margin-left:6px;font-weight:500}
+.strip{display:grid;grid-template-columns:repeat(20,8px);gap:1px;justify-content:end}
+.strip i{display:block;height:16px;background:var(--cell);border-radius:1px}
+.strip.p i{background:var(--proj)}
+.pct{color:var(--muted)} .pct.on{color:var(--ink);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:6px;background:var(--c)}
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px 22px}
+.how div{min-width:0}
+.how h3{font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-size:14px;margin:0 0 4px}
+.how p{margin:0;font-size:14px;color:var(--muted);max-width:62ch}
+.vstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-width:520px}
+.vs{border:1px solid var(--line);padding:10px 8px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.vs .v{font-family:var(--display);font-weight:800;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.vs .k{font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--muted)}
+ol.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto}
+ol.log li{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:12px;border-top:1px solid var(--line);padding-top:6px;font-size:14px}
+ol.log time{font-family:var(--cond);color:var(--muted);font-variant-numeric:tabular-nums}
+.foot{border-top:1px solid var(--line);padding-top:12px;font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.foot p{margin:0;max-width:90ch}
+details summary{cursor:pointer;font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-weight:600;font-size:14px}
+details table{min-width:420px;margin-top:10px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Unofficial fan project · Monte Carlo · Poisson goals model</div>
+      <h1>Premier League <span>26/27</span> Simulator</h1>
+    </div>
+    <div class="asof" id="asof"></div>
+  </header>
+
+  <section class="controls" aria-label="Simulation settings">
+    <div class="ctl"><label for="team">Your club</label><select id="team"></select></div>
+    <div class="ctl"><label for="form">Weight on 26/27 form: <b id="formv">2.5×</b></label><input id="form" type="range" min="0" max="6" step="0.5" value="2.5"></div>
+    <div class="ctl"><label for="sims">Seasons per projection</label>
+      <select id="sims"><option>2000</option><option selected>5000</option><option>10000</option></select></div>
+    <div class="status" id="status" aria-live="polite"></div>
+  </section>
+
+  <section class="dial" aria-label="Matchweek">
+    <div><div class="mwlab">Matchweek</div><div class="mwrow"><button class="step" data-step="-1" aria-label="Previous matchweek"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button><div class="mwnum" id="mwnum">10</div><button class="step" data-step="1" aria-label="Next matchweek"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button></div></div>
+    <div class="mwstate"><span class="pill" id="mwpill"></span><span class="mwdesc" id="mwdesc"></span></div>
+    <div class="track">
+      <input id="mw" type="range" min="1" max="38" step="1" value="10" aria-label="Matchweek">
+      <div class="ticks" id="ticks"></div>
+    </div>
+    <button class="play" id="play">▶ Play</button>
+  </section>
+
+  <div class="grid">
+    <section class="panel" aria-label="Club focus">
+      <div class="focus-head">
+        <div class="eyebrow" id="f-eyebrow"></div>
+        <div class="focus-team" id="f-team"></div>
+        <div class="focus-line" id="f-line"></div>
+      </div>
+      <div>
+        <div class="eyebrow" id="chips-lab" style="margin-bottom:6px"></div>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div>
+        <div class="eyebrow">Points through the season</div>
+        <svg id="traj" viewBox="0 0 380 210" width="100%" role="img" aria-label="Points trajectory"></svg>
+        <div class="key" id="trajkey"></div>
+      </div>
+      <div>
+        <div class="eyebrow" id="dist-lab"></div>
+        <svg id="dist" viewBox="0 0 360 160" width="100%" role="img" aria-label="Position distribution"></svg>
+      </div>
+    </section>
+
+    <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+      <section class="panel" aria-label="Table">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px">
+          <div class="stephead"><button class="step" data-step="-1" aria-label="Previous matchweek"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button><h2 id="tbl-title"></h2><button class="step" data-step="1" aria-label="Next matchweek"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button></div>
+          <div class="legend"><span style="--c:var(--good)">Top 4</span><span style="--c:var(--warn)">Relegation (18–20)</span></div>
+        </div>
+        <div class="tablewrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+        <p class="note" id="tbl-note"></p>
+      </section>
+      <section class="panel" aria-label="Matchweek games">
+        <div class="stephead"><button class="step" data-step="-1" aria-label="Previous matchweek"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button><h2 id="fx-title"></h2><button class="step" data-step="1" aria-label="Next matchweek"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button></div>
+        <div class="fixtures" id="fixtures"></div>
+        <p class="note" id="fx-note"></p>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel" aria-label="Update log">
+    <h2>Update log</h2>
+    <p class="note">Results are refreshed once a day, after the evening's games. Each update is checked against the official table before it goes live.</p>
+    <div class="vstats" aria-label="Visitor stats">
+      <div class="vs"><span class="v" id="vs-total">–</span><span class="k">Total visits</span></div>
+      <div class="vs"><span class="v" id="vs-week">–</span><span class="k">This week</span></div>
+      <div class="vs"><span class="v" id="vs-days">–</span><span class="k">Days live</span></div>
+    </div>
+    <ol class="log" id="log"></ol>
+  </section>
+
+  <section class="panel" aria-label="How the model works">
+    <h2>How it works</h2>
+    <div class="how">
+      <div><h3>Ratings from history</h3><p>Each club gets an attack and a defence rating from goals scored and conceded per game, relative to the league average. 2025/26 counts fully, 2024/25 at 40%, and every club is pulled slightly toward average. Hull and Coventry start from a typical promoted-club baseline.</p></div>
+      <div><h3>Form at each matchweek</h3><p>When you pick a past matchweek, the model only knows results up to that week. Those results are blended in at the weight you set, then the rest of the season is played out. That is the projection it would have made at the time.</p></div>
+      <div><h3>Future matchweeks</h3><p>From today, every simulated season follows the real fixture list. Pick a future week to see where clubs are expected to stand after it, with ranges, not just the final table.</p></div>
+      <div><h3>Playing the matches</h3><p>Expected goals = league home or away scoring rate × attacker's attack × defender's defence. Goals are drawn from a Poisson distribution. Ties in the table split on goal difference, then goals scored.</p></div>
+    </div>
+    <details>
+      <summary>Team ratings at the selected matchweek</summary>
+      <div class="tablewrap"><table><thead><tr><th class="l">Club</th><th>Attack</th><th>Defence</th></tr></thead><tbody id="rbody"></tbody></table></div>
+      <p class="note">Attack above 1.00 scores more than average; defence below 1.00 concedes less than average.</p>
+    </details>
+  </section>
+
+  <footer class="foot">
+    <p>Unofficial fan project. Not affiliated with or endorsed by the Premier League or any club. Club names are used for identification only. Results and fixtures are compiled from public sources, and projections are the output of a statistical model, not betting odds.</p>
+    <p>Anonymous visit counts via GoatCounter (no cookies, no personal data).</p>
+  </footer>
+</div>
+
+<script>
+// ---------- Data ----------
+// Results MW1–10 and the official fixture list (premierleague.com), reconciled with the table on 8 Nov 2026.
+// played: [matchweek, home, homeGoals, awayGoals, away]; future: [matchweek, home, away]
+const D = {"teams":["Arsenal","Man City","Brighton","Chelsea","Everton","Liverpool","Brentford","Leeds","Bournemouth","Tottenham","Newcastle","Aston Villa","Hull City","Ipswich","Fulham","Nottm Forest","Coventry","Man Utd","Crystal Palace","Sunderland"],"played":[[1,0,3,0,16],[1,1,2,1,8],[1,2,4,0,11],[1,4,2,0,18],[1,6,3,0,9],[1,10,2,2,5],[1,12,2,0,17],[1,13,2,1,19],[1,14,2,3,3],[1,15,0,1,7],[2,3,4,3,2],[2,5,2,2,15],[2,7,1,1,6],[2,8,1,1,4],[2,9,0,2,10],[2,11,0,1,0],[2,16,0,1,12],[2,17,5,2,13],[2,18,1,4,1],[2,19,1,0,14],[3,0,2,1,3],[3,1,1,0,16],[3,2,1,1,7],[3,4,2,2,17],[3,6,1,1,19],[3,10,2,2,8],[3,12,0,0,11],[3,13,0,2,5],[3,14,2,3,18],[3,15,0,0,9],[4,3,2,2,12],[4,5,0,0,14],[4,7,4,1,10],[4,8,2,2,6],[4,9,0,0,4],[4,11,1,2,15],[4,16,0,5,2],[4,17,0,1,1],[4,18,2,3,13],[4,19,0,2,0],[5,1,5,3,19],[5,2,3,0,0],[5,4,1,0,13],[5,6,3,0,3],[5,7,0,0,18],[5,8,0,1,5],[5,9,2,3,11],[5,10,2,1,12],[5,14,1,1,17],[5,15,0,1,16],[6,0,2,1,7],[6,3,5,1,8],[6,5,0,3,1],[6,11,2,2,6],[6,12,2,2,4],[6,13,2,1,14],[6,16,4,1,10],[6,17,1,1,9],[6,18,3,1,15],[6,19,0,2,2],[7,1,3,2,13],[7,2,5,0,18],[7,4,0,2,3],[7,6,1,2,5],[7,7,1,1,17],[7,8,2,0,19],[7,9,3,1,16],[7,10,0,1,11],[7,14,1,0,12],[7,15,0,1,0],[8,0,2,0,4],[8,3,0,2,9],[8,5,2,0,2],[8,11,2,1,1],[8,12,1,1,6],[8,13,1,1,15],[8,16,0,1,14],[8,17,0,3,8],[8,18,0,2,10],[8,19,0,0,7],[9,1,0,1,2],[9,3,2,0,17],[9,5,0,1,0],[9,6,2,0,15],[9,8,2,0,7],[9,9,2,0,18],[9,10,0,1,4],[9,11,1,1,14],[9,12,2,2,13],[9,16,3,1,19],[10,0,1,0,12],[10,2,2,0,6],[10,4,3,1,16],[10,7,1,0,9],[10,13,1,2,8],[10,14,1,1,10],[10,15,3,1,1],[10,17,4,4,11],[10,18,1,3,5],[10,19,1,0,3]],"future":[[11,1,14],[11,3,7],[11,5,17],[11,6,4],[11,8,15],[11,9,13],[11,10,0],[11,11,19],[11,12,2],[11,16,18],[12,0,1],[12,2,10],[12,4,5],[12,7,16],[12,13,11],[12,14,8],[12,15,3],[12,17,6],[12,18,12],[12,19,9],[13,1,7],[13,3,18],[13,5,19],[13,6,0],[13,8,2],[13,9,14],[13,10,17],[13,11,4],[13,12,15],[13,16,13],[14,3,5],[14,4,14],[14,6,1],[14,7,13],[14,8,12],[14,9,0],[14,10,19],[14,11,18],[14,15,2],[14,17,16],[15,0,8],[15,1,3],[15,2,4],[15,5,7],[15,12,9],[15,13,10],[15,14,6],[15,16,11],[15,18,17],[15,19,15],[16,0,17],[16,1,12],[16,2,13],[16,3,11],[16,5,9],[16,6,10],[16,7,14],[16,8,16],[16,15,4],[16,19,18],[17,4,19],[17,9,8],[17,10,1],[17,11,7],[17,12,5],[17,13,6],[17,14,2],[17,16,3],[17,17,15],[17,18,0],[18,4,1],[18,9,2],[18,10,15],[18,11,5],[18,12,7],[18,13,3],[18,14,0],[18,16,6],[18,17,19],[18,18,8],[19,0,13],[19,1,9],[19,2,17],[19,3,10],[19,5,16],[19,6,18],[19,7,4],[19,8,11],[19,15,14],[19,19,12],[20,0,6],[20,2,8],[20,4,11],[20,7,1],[20,13,16],[20,14,9],[20,15,12],[20,17,10],[20,18,3],[20,19,5],[21,1,15],[21,3,19],[21,5,18],[21,6,2],[21,8,13],[21,9,7],[21,10,14],[21,11,17],[21,12,0],[21,16,4],[22,0,10],[22,2,1],[22,4,6],[22,7,3],[22,13,12],[22,14,11],[22,15,8],[22,17,5],[22,18,9],[22,19,16],[23,1,0],[23,3,15],[23,5,4],[23,6,17],[23,8,14],[23,9,19],[23,10,2],[23,11,13],[23,12,18],[23,16,7],[24,0,5],[24,2,12],[24,4,10],[24,7,8],[24,13,9],[24,14,1],[24,15,6],[24,17,3],[24,18,16],[24,19,11],[25,4,7],[25,9,1],[25,10,3],[25,11,8],[25,12,19],[25,13,0],[25,14,15],[25,16,5],[25,17,2],[25,18,6],[26,0,14],[26,1,10],[26,2,9],[26,3,13],[26,5,12],[26,6,16],[26,7,11],[26,8,18],[26,15,17],[26,19,4],[27,4,15],[27,9,5],[27,10,6],[27,11,3],[27,12,1],[27,13,2],[27,14,7],[27,16,8],[27,17,0],[27,18,19],[28,0,18],[28,1,4],[28,2,14],[28,3,16],[28,5,11],[28,6,13],[28,7,12],[28,8,9],[28,15,10],[28,19,17],[29,3,0],[29,5,13],[29,7,2],[29,8,10],[29,9,15],[29,11,12],[29,16,1],[29,17,4],[29,18,14],[29,19,6],[30,0,19],[30,1,17],[30,2,16],[30,4,9],[30,6,8],[30,10,7],[30,12,3],[30,13,18],[30,14,5],[30,15,11],[31,3,14],[31,5,10],[31,7,15],[31,8,1],[31,9,6],[31,11,2],[31,16,0],[31,17,12],[31,18,4],[31,19,13],[32,0,11],[32,1,18],[32,2,3],[32,4,8],[32,6,7],[32,10,9],[32,12,16],[32,13,17],[32,14,19],[32,15,5],[33,3,1],[33,4,2],[33,6,14],[33,7,5],[33,8,0],[33,9,12],[33,10,13],[33,11,16],[33,15,19],[33,17,18],[34,0,9],[34,1,6],[34,2,15],[34,5,3],[34,12,8],[34,13,7],[34,14,4],[34,16,17],[34,18,11],[34,19,10],[35,1,5],[35,2,19],[35,4,12],[35,6,11],[35,7,0],[35,8,17],[35,9,3],[35,10,16],[35,14,13],[35,15,18],[36,0,15],[36,3,4],[36,5,6],[36,11,10],[36,12,14],[36,13,1],[36,16,9],[36,17,7],[36,18,2],[36,19,8],[37,1,11],[37,2,5],[37,4,0],[37,6,12],[37,7,19],[37,8,3],[37,9,17],[37,10,18],[37,14,16],[37,15,13],[38,0,2],[38,3,6],[38,5,8],[38,11,9],[38,12,10],[38,13,4],[38,16,15],[38,17,14],[38,18,7],[38,19,1]],"asof":"Sun 8 Nov 2026, 8:10pm ET","log":[{"date":"2026-11-08","note":"Simulator launched with results through Saturday's matchweek 10 games (95 of 380) and the official fixture list. Matchweek slider added."},{"date":"2026-11-08","note":"Added 5 matchweek 10 results: Brighton 2–0 Brentford, Ipswich 1–2 Bournemouth, Man Utd 4–4 Aston Villa, Crystal Palace 1–3 Liverpool, Sunderland 1–0 Chelsea. Matchweek 10 complete."}]};
+const TEAMS = D.teams, N = TEAMS.length, IDX = Object.fromEntries(TEAMS.map((t,i)=>[t,i]));
+const PLAYED = D.played, FUTURE = D.future;
+const CUR = Math.max(...PLAYED.map(g=>g[0]));                  // 10, in progress
+const CUR_PLAYED = PLAYED.filter(g=>g[0]===CUR).length;
+const CUR_DONE = CUR_PLAYED>=10;
+const MAXP = 115;
+const S2526 = {"Arsenal":[71,27],"Man City":[77,35],"Man Utd":[69,50],"Aston Villa":[56,49],"Liverpool":[63,53],
+ "Bournemouth":[58,54],"Sunderland":[42,48],"Brighton":[52,46],"Brentford":[55,52],"Chelsea":[58,52],"Fulham":[47,51],
+ "Newcastle":[53,55],"Everton":[47,50],"Leeds":[49,56],"Crystal Palace":[41,51],"Nottm Forest":[48,51],"Tottenham":[48,57],
+ "West Ham":[46,65],"Burnley":[38,75],"Wolves":[27,68]};
+const POS2526 = {"Arsenal":1,"Man City":2,"Man Utd":3,"Aston Villa":4,"Liverpool":5,"Bournemouth":6,"Sunderland":7,"Brighton":8,
+ "Brentford":9,"Chelsea":10,"Fulham":11,"Newcastle":12,"Everton":13,"Leeds":14,"Crystal Palace":15,"Nottm Forest":16,"Tottenham":17};
+const S2425 = {"Liverpool":[86,41],"Arsenal":[69,34],"Man City":[72,44],"Chelsea":[64,43],"Newcastle":[68,47],"Aston Villa":[58,51],
+ "Nottm Forest":[58,46],"Brighton":[66,59],"Bournemouth":[58,46],"Brentford":[66,57],"Fulham":[54,54],"Crystal Palace":[51,51],
+ "Everton":[42,44],"West Ham":[46,62],"Man Utd":[44,54],"Wolves":[54,69],"Tottenham":[64,65],"Leicester":[33,80],"Ipswich":[36,82],"Southampton":[26,86]};
+const MU_H = 580/380, MU_A = 465/380;   // 2025/26 home and away goals per game
+const PROMOTED = new Set(["Hull City","Ipswich","Coventry"]);
+
+// ---------- State ----------
+let focus = "Liverpool", week = CUR, cache = {}, playing = null;
+try{ const f = localStorage.getItem("plsim-focus"); if(f && IDX[f]!==undefined) focus=f; }catch(e){}
+
+// ---------- Tables ----------
+function tableAt(k){
+  const t = TEAMS.map(()=>({P:0,W:0,D:0,L:0,GF:0,GA:0,Pts:0}));
+  const add=(r,f,a)=>{ r.P++; r.GF+=f; r.GA+=a; if(f>a){r.W++;r.Pts+=3;} else if(f===a){r.D++;r.Pts++;} else r.L++; };
+  for(const [md,h,gh,ga,a] of PLAYED){ if(md>k) continue; add(t[h],gh,ga); add(t[a],ga,gh); }
+  return t;
+}
+const gdOf = r => r.GF-r.GA;
+function rankOf(tbl){ return TEAMS.map((_,i)=>i).sort((x,y)=>tbl[y].Pts-tbl[x].Pts || gdOf(tbl[y])-gdOf(tbl[x]) || tbl[y].GF-tbl[x].GF || TEAMS[x].localeCompare(TEAMS[y])); }
+const TABLES = Array.from({length:CUR+1},(_,k)=>tableAt(k));
+
+// ---------- Ratings ----------
+function leagueMu(season){ let g=0,n=0; for(const k in season){ g+=season[k][0]; n+=38; } return g/n; }
+const MU2425 = leagueMu(S2425), MU2526 = leagueMu(S2526);
+function ratings(k, formW){
+  const tbl = TABLES[Math.min(k,CUR)]; let g=0,p=0; for(const r of tbl){ g+=r.GF; p+=r.P; }
+  const muNow = p? g/p : 1, K=8, att=[], def=[];
+  TEAMS.forEach((t,i)=>{
+    const pa=PROMOTED.has(t)?0.78:1, pd=PROMOTED.has(t)?1.30:1;
+    let na=K*pa, nd=K*pd, den=K;
+    if(S2425[t]){ const w=0.4; na+=w*S2425[t][0]/MU2425; nd+=w*S2425[t][1]/MU2425; den+=w*38; }
+    if(S2526[t]){ na+=S2526[t][0]/MU2526; nd+=S2526[t][1]/MU2526; den+=38; }
+    if(formW>0 && tbl[i].P){ na+=formW*tbl[i].GF/muNow; nd+=formW*tbl[i].GA/muNow; den+=formW*tbl[i].P; }
+    att.push(na/den); def.push(nd/den);
+  });
+  const ma=att.reduce((a,b)=>a+b)/N, md=def.reduce((a,b)=>a+b)/N;
+  return {att:att.map(x=>x/ma), def:def.map(x=>x/md)};
+}
+
+// ---------- Simulation from the end of matchweek k ----------
+function pois(l){ const L=Math.exp(-l); let k=0,p=1; do{ k++; p*=Math.random(); }while(p>L); return k-1; }
+function simulate(k, sims, formW){
+  const {att,def} = ratings(k, formW);
+  const games=[]; for(const g of PLAYED) if(g[0]>k) games.push([g[0],g[1],g[4]]); for(const f of FUTURE) games.push(f);
+  games.sort((x,y)=>x[0]-y[0]);
+  const G=games.length, H=new Int8Array(G), A=new Int8Array(G), lh=new Float64Array(G), la=new Float64Array(G), endR=new Int16Array(G);
+  games.forEach(([r,h,a],i)=>{ H[i]=h; A[i]=a; lh[i]=MU_H*att[h]*def[a]; la[i]=MU_A*att[a]*def[h]; endR[i]=(i===G-1||games[i+1][0]!==r)?r:0; });
+  const pos={}, hist={}, sum={}; const rounds=[...new Set(games.map(g=>g[0]))];
+  for(const r of rounds){ pos[r]=new Float64Array(N*N); hist[r]=new Uint32Array(N*MAXP); sum[r]=new Float64Array(N); }
+  const base=TABLES[Math.min(k,CUR)], gdSum=new Float64Array(N);
+  const pts=new Int16Array(N), gd=new Int16Array(N), gf=new Int16Array(N), tie=new Float64Array(N), order=TEAMS.map((_,i)=>i);
+  const cmp=(x,y)=>pts[y]-pts[x]||gd[y]-gd[x]||gf[y]-gf[x]||tie[y]-tie[x];
+  for(let s=0;s<sims;s++){
+    for(let i=0;i<N;i++){ pts[i]=base[i].Pts; gd[i]=gdOf(base[i]); gf[i]=base[i].GF; tie[i]=Math.random(); }
+    for(let i=0;i<G;i++){
+      const h=H[i], a=A[i], x=pois(lh[i]), y=pois(la[i]);
+      gf[h]+=x; gf[a]+=y; gd[h]+=x-y; gd[a]+=y-x;
+      if(x>y) pts[h]+=3; else if(x<y) pts[a]+=3; else { pts[h]++; pts[a]++; }
+      const r=endR[i];
+      if(r){ order.sort(cmp); const P=pos[r], Hh=hist[r], S=sum[r];
+        for(let q=0;q<N;q++){ P[order[q]*N+q]++; Hh[q*MAXP+Math.min(pts[q],MAXP-1)]++; S[q]+=pts[q]; } }
+    }
+    for(let i=0;i<N;i++) gdSum[i]+=gd[i];
+  }
+  return {k,att,def,sims,rounds,pos,hist,sum,gdSum};
+}
+function getSim(k){
+  const sims=+document.getElementById("sims").value, fw=+document.getElementById("form").value, key=`${k}|${sims}|${fw}`;
+  if(!cache[key]) cache[key]=simulate(k,sims,fw);
+  return cache[key];
+}
+const distAt=(S,r,i)=>Array.from(S.pos[r].subarray(i*N,i*N+N)).map(c=>c/S.sims);
+function pctlAt(S,r,i,q){ const h=S.hist[r], tgt=q*S.sims; let c=0; for(let p=0;p<MAXP;p++){ c+=h[i*MAXP+p]; if(c>=tgt) return p; } return MAXP-1; }
+const expAt=(S,r,i)=>S.sum[r][i]/S.sims;
+
+function matchProbs(h,a,R){
+  const lh=MU_H*R.att[h]*R.def[a], la=MU_A*R.att[a]*R.def[h];
+  const pmf=(l,k)=>{ let p=Math.exp(-l); for(let i=1;i<=k;i++) p*=l/i; return p; };
+  let Hw=0,Dw=0,Aw=0,best=[0,0,0];
+  for(let x=0;x<=10;x++) for(let y=0;y<=10;y++){ const p=pmf(lh,x)*pmf(la,y);
+    if(x>y)Hw+=p; else if(x<y)Aw+=p; else Dw+=p; if(p>best[2]) best=[x,y,p]; }
+  return {H:Hw,D:Dw,A:Aw,lh,la,best};
+}
+
+// ---------- Helpers ----------
+const pct = v => v>=0.995?">99":v<0.005&&v>0?"<1":Math.round(v*100)+"";
+const ord = n => { const s=["th","st","nd","rd"], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
+const sumP = (d,a,b)=>d.slice(a,b).reduce((x,y)=>x+y,0);
+const strip = (d,cls)=>`<div class="strip ${cls}">${d.map(v=>`<i style="opacity:${v<0.002?0.05:Math.min(1,0.12+Math.sqrt(v)*1.4).toFixed(2)}"></i>`).join("")}</div>`;
+const ptsHistory = i => TABLES.map(t=>t[i].Pts);
+
+// ---------- Render ----------
+function render(){
+  const isPast = week<=CUR, anchor = isPast?week:CUR, S = getSim(anchor), fi = IDX[focus];
+  // dial
+  document.getElementById("mwnum").textContent=week;
+  const pill=document.getElementById("mwpill"), desc=document.getElementById("mwdesc");
+  if(week<CUR){ pill.className="pill played"; pill.textContent="Played"; desc.textContent="Actual table, plus the projection the model would have made after this week."; }
+  else if(week===CUR && CUR_DONE){ pill.className="pill played"; pill.textContent="Latest"; desc.textContent="Most recent completed matchweek. Actual table, plus the current projection."; }
+  else if(week===CUR){ pill.className="pill live"; pill.textContent=`In progress · ${CUR_PLAYED} of 10`; desc.textContent="Actual table so far, plus the current projection."; }
+  else { pill.className="pill proj"; pill.textContent="Projected"; desc.textContent=`Where clubs are expected to stand after matchweek ${week}, based on today's ratings and the real fixture list.`; }
+
+  renderTable(S,isPast,anchor);
+  renderFocus(S,isPast,anchor,fi);
+  renderFixtures();
+  document.getElementById("rbody").innerHTML=TEAMS.map((_,i)=>i).sort((x,y)=>(S.att[y]/S.def[y])-(S.att[x]/S.def[x]))
+    .map(i=>`<tr${i===fi?' class="sel"':""}><td class="l team">${TEAMS[i]}</td><td>${S.att[i].toFixed(2)}</td><td>${S.def[i].toFixed(2)}</td></tr>`).join("");
+}
+
+function renderTable(S,isPast,anchor){
+  const thead=document.getElementById("thead"), tb=document.getElementById("tbody");
+  tb.innerHTML="";
+  if(isPast){
+    document.getElementById("tbl-title").textContent = week===CUR?"Table today, with current projection":`Table after matchweek ${week}, with projection made then`;
+    thead.innerHTML=`<tr><th class="grp a l" colspan="8">Actual after MW${week}</th><th class="grp p l sep" colspan="5">Projected final table, as of MW${week}</th></tr>
+      <tr><th class="l">#</th><th class="l">Club</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th>
+      <th class="sep">Exp. pts</th><th>Title</th><th>Top 4</th><th>Down</th><th>Final 1 → 20</th></tr>`;
+    const tbl=TABLES[week], prevRank=week>1?rankOf(TABLES[week-1]):null, rank=rankOf(tbl);
+    rank.forEach((i,k)=>{
+      const r=tbl[i], d=distAt(S,38,i), was=prevRank?prevRank.indexOf(i):k, mv=was-k;
+      const mvh = mv>0?`<span class="mv up">▲${mv}</span>`:mv<0?`<span class="mv dn">▼${-mv}</span>`:"";
+      addRow(tb,i,k,`<td class="pos l">${k+1}</td><td class="team l">${TEAMS[i]}${mvh}</td><td>${r.P}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${gdOf(r)>0?"+":""}${gdOf(r)}</td><td class="b">${r.Pts}</td>
+        <td class="sep proj b">${expAt(S,38,i).toFixed(1)}</td>${pc(d[0])}${pc(sumP(d,0,4))}${pc(sumP(d,17,20))}<td>${strip(d,"p")}</td>`);
+    });
+    document.getElementById("tbl-note").textContent = week<CUR
+      ? `The projection columns only use results up to matchweek ${week}. Slide forward to see how it held up.`
+      : (CUR_DONE?"Latest results included.":"This matchweek's unplayed games are treated as unplayed in every simulation.")+" Click any row to make it your focus club.";
+  } else {
+    document.getElementById("tbl-title").textContent = week===38?"Projected final table":`Projected table after matchweek ${week}`;
+    thead.innerHTML=`<tr><th class="grp a l" colspan="3">Today</th><th class="grp p l sep" colspan="6">Projected after MW${week}</th></tr>
+      <tr><th class="l">#</th><th class="l">Club <span class="prev">25/26</span></th><th>Pts</th>
+      <th class="sep">Exp. pts</th><th>Likely range</th><th>${week===38?"Title":"1st"}</th><th>Top 4</th><th>Bottom 3</th><th>Position 1 → 20</th></tr>`;
+    const nowT=TABLES[CUR], rows=TEAMS.map((_,i)=>i).sort((x,y)=>expAt(S,week,y)-expAt(S,week,x));
+    rows.forEach((i,k)=>{
+      const d=distAt(S,week,i), prev=POS2526[TEAMS[i]]?ord(POS2526[TEAMS[i]]):"Promoted";
+      addRow(tb,i,k,`<td class="pos l">${k+1}</td><td class="team l">${TEAMS[i]}<span class="prev">${prev}</span></td><td>${nowT[i].Pts}</td>
+        <td class="sep proj b">${expAt(S,week,i).toFixed(1)}</td><td class="proj">${pctlAt(S,week,i,.1)}–${pctlAt(S,week,i,.9)}</td>${pc(d[0])}${pc(sumP(d,0,4))}${pc(sumP(d,17,20))}<td>${strip(d,"p")}</td>`);
+    });
+    document.getElementById("tbl-note").textContent = `Likely range covers 80% of simulated seasons. ${(+document.getElementById("sims").value).toLocaleString()} seasons simulated from today.`;
+  }
+}
+const pc = v => `<td class="pct ${v>=.05?"on":""}">${pct(v)}%</td>`;
+function addRow(tb,i,k,html){
+  const tr=document.createElement("tr"); tr.innerHTML=html;
+  if(TEAMS[i]===focus) tr.classList.add("sel"); if(k===3) tr.classList.add("cut4"); if(k===16) tr.classList.add("cut17");
+  tr.addEventListener("click",()=>setFocus(TEAMS[i])); tb.appendChild(tr);
+}
+
+function renderFocus(S,isPast,anchor,fi){
+  document.getElementById("f-team").textContent=focus;
+  const dFinal=distAt(S,38,fi), expFinal=expAt(S,38,fi);
+  const finalRank = TEAMS.map((_,i)=>i).sort((x,y)=>expAt(S,38,y)-expAt(S,38,x)).indexOf(fi)+1;
+  if(isPast){
+    const tbl=TABLES[week], r=tbl[fi], pos=rankOf(tbl).indexOf(fi)+1;
+    document.getElementById("f-eyebrow").textContent = week===CUR?"Today":`After matchweek ${week}`;
+    document.getElementById("f-line").innerHTML = `Actually <b>${ord(pos)}</b> on <b>${r.Pts}</b> pts. Projected to finish <b>${ord(finalRank)}</b> on <b>${expFinal.toFixed(1)}</b> (range ${pctlAt(S,38,fi,.1)}–${pctlAt(S,38,fi,.9)}).`;
+    document.getElementById("chips-lab").textContent = week===CUR?"Final-table chances, today":`Final-table chances, as seen after MW${week}`;
+  } else {
+    const rk=TEAMS.map((_,i)=>i).sort((x,y)=>expAt(S,week,y)-expAt(S,week,x)).indexOf(fi)+1;
+    document.getElementById("f-eyebrow").textContent = `Projected after matchweek ${week}`;
+    document.getElementById("f-line").innerHTML = `Expected <b>${ord(rk)}</b> on <b>${expAt(S,week,fi).toFixed(1)}</b> pts (range ${pctlAt(S,week,fi,.1)}–${pctlAt(S,week,fi,.9)}). Final: <b>${ord(finalRank)}</b>, <b>${expFinal.toFixed(1)}</b> pts.`;
+    document.getElementById("chips-lab").textContent = "Final-table chances, today";
+  }
+  const chip=(k,v,hot)=>`<div class="chip ${hot?"hot":""}"><span class="v">${pct(v)}%</span><span class="k">${k}</span></div>`;
+  document.getElementById("chips").innerHTML = chip("Title",dFinal[0],dFinal[0]>=.1)+chip("Top 4",sumP(dFinal,0,4),sumP(dFinal,0,4)>=.5)+chip("Top 5",sumP(dFinal,0,5),false)+chip("Relegated",sumP(dFinal,17,20),sumP(dFinal,17,20)>=.1);
+  drawTraj(S,anchor,fi);
+  const r = isPast?38:week, d = distAt(S,r,fi);
+  document.getElementById("dist-lab").textContent = isPast?`Final position, % of seasons simulated after MW${week}`:`Position after MW${week}, % of simulated seasons`;
+  drawDist(d);
+}
+
+function drawTraj(S,anchor,fi){
+  const W=380,Hh=210,L=30,R=10,T=10,B=24, hist=ptsHistory(fi);
+  const rounds=S.rounds.filter(r=>r>=anchor || r===anchor);
+  const band=rounds.map(r=>[r,pctlAt(S,r,fi,.1),pctlAt(S,r,fi,.5),pctlAt(S,r,fi,.9)]);
+  const ymax=Math.max(30,Math.ceil((Math.max(...band.map(b=>b[3]),...hist)+5)/20)*20);
+  const x=w=>L+(W-L-R)*w/38, y=p=>T+(Hh-T-B)*(1-p/ymax);
+  let s="";
+  for(let p=0;p<=ymax;p+=20) s+=`<line x1="${L}" x2="${W-R}" y1="${y(p)}" y2="${y(p)}" stroke="var(--line)"/><text x="${L-5}" y="${y(p)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${p}</text>`;
+  for(const w of [1,10,19,29,38]) s+=`<text x="${x(w)}" y="${Hh-6}" text-anchor="${w===38?"end":w===1?"start":"middle"}" font-size="11" fill="var(--muted)">MW${w}</text>`;
+  // projection band from anchor
+  const start=[anchor,hist[Math.min(anchor,CUR)]];
+  const pts=[[start[0],start[1],start[1],start[1]],...band.filter(b=>b[0]>anchor || (b[0]===anchor&&anchor===CUR))];
+  const up=pts.map(b=>`${x(b[0]).toFixed(1)},${y(b[3]).toFixed(1)}`), lo=pts.slice().reverse().map(b=>`${x(b[0]).toFixed(1)},${y(b[1]).toFixed(1)}`);
+  s+=`<polygon points="${up.concat(lo).join(" ")}" fill="var(--proj-soft)" stroke="none"/>`;
+  s+=`<polyline points="${pts.map(b=>`${x(b[0]).toFixed(1)},${y(b[2]).toFixed(1)}`).join(" ")}" fill="none" stroke="var(--proj)" stroke-width="2" stroke-dasharray="5 3"/>`;
+  // actual: up to selected week solid, after it faded
+  const upto=Math.min(week,CUR);
+  const act=hist.map((p,w)=>`${x(w).toFixed(1)},${y(p).toFixed(1)}`);
+  if(upto<CUR) s+=`<polyline points="${act.slice(upto).join(" ")}" fill="none" stroke="var(--accent)" stroke-width="2" opacity=".35"/>`;
+  s+=`<polyline points="${act.slice(0,upto+1).join(" ")}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>`;
+  s+=`<circle cx="${x(upto)}" cy="${y(hist[upto])}" r="3.5" fill="var(--accent)"/>`;
+  // selected week marker
+  s+=`<line x1="${x(week)}" x2="${x(week)}" y1="${T}" y2="${Hh-B}" stroke="var(--ink)" stroke-width="1" stroke-dasharray="2 3"/>`;
+  if(week>CUR){ const b=band.find(b=>b[0]===week); if(b) s+=`<circle cx="${x(week)}" cy="${y(expAt(S,week,fi))}" r="4" fill="var(--proj)"/><text x="${Math.min(x(week)+6,W-R-28)}" y="${y(expAt(S,week,fi))-8}" font-size="12" font-weight="600" fill="var(--proj)">${expAt(S,week,fi).toFixed(0)}</text>`; }
+  const fin=band.find(b=>b[0]===38); if(fin) s+=`<text x="${W-R}" y="${y(fin[2])-6}" text-anchor="end" font-size="12" font-weight="600" fill="var(--proj)">${fin[2]}</text>`;
+  document.getElementById("traj").innerHTML=s;
+  document.getElementById("trajkey").innerHTML = `<span style="--c:var(--accent)">Actual points</span>`
+    + (week<CUR?`<span style="--c:var(--accent);opacity:.5">What happened next</span>`:"")
+    + `<span style="--c:var(--proj)">Projected median</span><span class="area" style="--c:var(--proj-soft)">80% range</span>`;
+}
+
+function drawDist(d){
+  const W=360,Hh=160,L=6,R=6,T=16,B=22, max=Math.max(...d,.05), bw=(W-L-R)/20, m=d.indexOf(Math.max(...d));
+  let s=`<line x1="${L}" x2="${W-R}" y1="${Hh-B}" y2="${Hh-B}" stroke="var(--line)"/>`;
+  d.forEach((v,k)=>{
+    const h=(Hh-T-B)*v/max, x=L+k*bw+1, y=Hh-B-h, c=k===m?"var(--proj)":k<4?"var(--good)":k>=17?"var(--warn)":"var(--muted)";
+    s+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw-2).toFixed(1)}" height="${h.toFixed(1)}" fill="${c}" opacity="${k===m?1:.7}"><title>${ord(k+1)}: ${(v*100).toFixed(1)}%</title></rect>`;
+    if(v>=0.03) s+=`<text x="${(x+(bw-2)/2).toFixed(1)}" y="${(y-4).toFixed(1)}" text-anchor="middle" font-size="10" fill="var(--ink)">${Math.round(v*100)}</text>`;
+    if([0,3,9,16,19].includes(k)) s+=`<text x="${(x+(bw-2)/2).toFixed(1)}" y="${Hh-B+15}" text-anchor="middle" font-size="11" fill="var(--muted)">${k+1}</text>`;
+  });
+  document.getElementById("dist").innerHTML=s;
+}
+
+function renderFixtures(){
+  const fw=+document.getElementById("form").value;
+  const pre = ratings(Math.min(week,CUR+1)-1, fw);     // ratings going into this week
+  const nowR = ratings(CUR, fw);
+  const done = PLAYED.filter(g=>g[0]===week), todo = FUTURE.filter(f=>f[0]===week);
+  document.getElementById("fx-title").textContent = `Matchweek ${week} games`;
+  const bar=(m,hit)=>{ const w=v=>(v*100).toFixed(1), cls=c=>hit===c?"hit":"";
+    return `<div class="bar3 ${hit?"res":""}"><div class="h ${cls("H")}" style="flex-basis:${w(m.H)}%">${Math.round(m.H*100)}</div><div class="d ${cls("D")}" style="flex-basis:${w(m.D)}%">${Math.round(m.D*100)}</div><div class="a ${cls("A")}" style="flex-basis:${w(m.A)}%">${Math.round(m.A*100)}</div></div>`; };
+  let html="";
+  for(const [,h,gh,ga,a] of done){
+    const m=matchProbs(h,a,pre), hit=gh>ga?"H":gh<ga?"A":"D", sel=TEAMS[h]===focus||TEAMS[a]===focus;
+    const p = hit==="H"?m.H:hit==="A"?m.A:m.D;
+    html+=`<div class="fx ${sel?"sel":""}"><span class="fx-teams">${TEAMS[h]} <span class="sc">${gh}–${ga}</span> ${TEAMS[a]}</span><span class="fx-meta">pre-match ${Math.round(p*100)}% for this result</span>${bar(m,hit)}</div>`;
+  }
+  for(const [,h,a] of todo){
+    const m=matchProbs(h,a,nowR), sel=TEAMS[h]===focus||TEAMS[a]===focus;
+    html+=`<div class="fx ${sel?"sel":""}"><span class="fx-teams">${TEAMS[h]} v ${TEAMS[a]}</span><span class="fx-meta">likeliest ${m.best[0]}–${m.best[1]} · xG ${m.lh.toFixed(1)}–${m.la.toFixed(1)}</span>${bar(m,null)}</div>`;
+  }
+  document.getElementById("fixtures").innerHTML=html;
+  document.getElementById("fx-note").textContent = done.length&&todo.length
+    ? "Played games show the model's pre-match home / draw / away odds, with the actual outcome outlined. Unplayed games use today's ratings."
+    : done.length ? "Bars show the model's pre-match home / draw / away odds using only earlier results. The actual outcome is outlined."
+    : "Home / draw / away odds from today's ratings.";
+}
+
+// ---------- Controls ----------
+function setFocus(t){ focus=t; document.getElementById("team").value=t; try{localStorage.setItem("plsim-focus",t);}catch(e){} render(); }
+function syncSteps(){ document.querySelectorAll(".step").forEach(b=>{ b.disabled = (+b.dataset.step<0 && week<=1) || (+b.dataset.step>0 && week>=38); }); }
+function stepWeek(d){ const k=Math.min(38,Math.max(1,week+d)); if(k!==week){ stopPlay(); setWeek(k); } }
+function setWeek(k){
+  week=k; syncSteps(); document.getElementById("mw").value=k;
+  const anchor=k<=CUR?k:CUR, sims=+document.getElementById("sims").value, fw=+document.getElementById("form").value;
+  const st=document.getElementById("status");
+  if(!cache[`${anchor}|${sims}|${fw}`]){ st.textContent="Simulating…"; setTimeout(()=>{ const t0=performance.now(); getSim(anchor); st.textContent=`${sims.toLocaleString()} seasons in ${((performance.now()-t0)/1000).toFixed(1)}s`; render(); },15); }
+  else render();
+}
+const sel=document.getElementById("team");
+[...TEAMS].sort().forEach(t=>{ const o=document.createElement("option"); o.textContent=t; sel.appendChild(o); });
+sel.value=focus; sel.addEventListener("change",e=>setFocus(e.target.value));
+const formEl=document.getElementById("form"), formV=document.getElementById("formv");
+formEl.addEventListener("input",()=>formV.textContent=formEl.value+"×");
+formEl.addEventListener("change",()=>{ cache={}; setWeek(week); });
+document.getElementById("sims").addEventListener("change",()=>{ cache={}; setWeek(week); });
+document.getElementById("mw").addEventListener("input",e=>{ stopPlay(); setWeek(+e.target.value); });
+document.querySelectorAll(".step").forEach(b=>b.addEventListener("click",()=>stepWeek(+b.dataset.step)));
+document.addEventListener("keydown",e=>{
+  if(e.altKey||e.ctrlKey||e.metaKey) return;
+  const t=e.target; if(t && (t.matches("input,select,textarea") || t.isContentEditable)) return;
+  if(e.key==="ArrowLeft"){ e.preventDefault(); stepWeek(-1); } else if(e.key==="ArrowRight"){ e.preventDefault(); stepWeek(1); }
+});
+document.getElementById("ticks").innerHTML=[...new Set([1,CUR,19,29,38])].sort((a,b)=>a-b).filter(w=>w===CUR||Math.abs(w-CUR)>3).map(w=>`<span class="${w===CUR?"now":""}" style="left:${((w-1)/37*100).toFixed(2)}%">${w===CUR?"Now · "+CUR:w}</span>`).join("");
+const playBtn=document.getElementById("play");
+function stopPlay(){ if(playing){ clearInterval(playing); playing=null; playBtn.textContent="▶ Play"; } }
+playBtn.addEventListener("click",()=>{
+  if(playing) return stopPlay();
+  if(week>=38) setWeek(1);
+  playBtn.textContent="❚❚ Pause";
+  playing=setInterval(()=>{ if(week>=38) return stopPlay(); setWeek(week+1); },900);
+});
+document.getElementById("asof").innerHTML=`${PLAYED.length} of 380 matches played · Matchweek ${CUR} ${CUR_DONE?"complete":"in progress"}<br>Data as of ${D.asof}`;
+document.getElementById("log").innerHTML=D.log.slice().reverse().map(e=>`<li><time>${new Date(e.date+"T12:00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}</time><span>${e.note}</span></li>`).join("");
+setWeek(CUR);
+
+// ---------- Visitor stats (GoatCounter public counter) ----------
+(function(){
+  const LAUNCH = new Date("2026-11-08T00:00:00-05:00");
+  document.getElementById("vs-days").textContent = Math.max(1, Math.floor((Date.now()-LAUNCH)/864e5)+1);
+  const base = "https://unofficial-premier-league-simulator.goatcounter.com/counter/TOTAL.json";
+  const load = (url, id) => {
+    const ctl = new AbortController(), t = setTimeout(()=>ctl.abort(), 8000);
+    fetch(url, {signal: ctl.signal}).then(r => r.ok ? r.json() : Promise.reject())
+      .then(j => { if(j && j.count != null) document.getElementById(id).textContent = j.count; })
+      .catch(()=>{}).finally(()=>clearTimeout(t));
+  };
+  load(base, "vs-total");
+  load(base + "?start=week", "vs-week");
+})();
+</script>
+<script data-goatcounter="https://unofficial-premier-league-simulator.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
