@@ -554,7 +554,7 @@ setWeek(CUR);
   const base = "https://unofficial-premier-league-simulator.goatcounter.com/counter/TOTAL.json";
   const load = (url, id) => {
     const ctl = new AbortController(), t = setTimeout(()=>ctl.abort(), 8000);
-    fetch(url, {signal: ctl.signal}).then(r => r.ok ? r.json() : Promise.reject())
+    fetch(url, {signal: ctl.signal, cache: "no-store"}).then(r => r.ok ? r.json() : Promise.reject())
       .then(j => { if(j && j.count != null) document.getElementById(id).textContent = j.count; })
       .catch(()=>{}).finally(()=>clearTimeout(t));
   };
