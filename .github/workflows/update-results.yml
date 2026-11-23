@@ -4,7 +4,7 @@ name: Update results
 # plus a monthly keep-alive so GitHub doesn't pause the schedule over the summer.
 on:
   schedule:
-    - cron: "7,22,37,52 11-23 * * *"
+    - cron: "8,23,38,53 11-23 * * *"
     - cron: "41 9 1 * *"
   workflow_dispatch:
 
