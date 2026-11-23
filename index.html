@@ -15,9 +15,9 @@
   --bg:#f6f2f1; --surface:#ffffff; --ink:#1c1416; --muted:#6e6164; --line:#e5dbdb;
   --accent:#c8102e; --accent-ink:#ffffff; --accent-soft:rgba(200,16,46,.10); --band:rgba(200,16,46,.16);
   --good:#23845a; --warn:#b4761a; --cell:#c8102e; --proj:#3d5a8c; --proj-soft:rgba(61,90,140,.12);
-  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
-  --body:"Barlow","Helvetica Neue",Arial,sans-serif;
-  --cond:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --display:"Big Shoulders Display","Arial Narrow",Impact,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --body:"Barlow","Helvetica Neue",Arial,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow",Arial,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#131011; --surface:#1c1719; --ink:#f3ebeb; --muted:#a7999b; --line:#342b2e;
@@ -149,6 +149,15 @@ ol.log li{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:12px;border
 ol.log time{font-family:var(--cond);color:var(--muted);font-variant-numeric:tabular-nums}
 .foot{border-top:1px solid var(--line);padding-top:12px;font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
 .foot p{margin:0;max-width:90ch}
+.langbar{display:flex;justify-content:flex-end;margin-bottom:-8px}
+.langbar button{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:4px 12px;font-family:var(--cond);font-size:14px;font-weight:600;letter-spacing:.04em;cursor:pointer}
+.langbar button+button{border-left:0}
+.langbar button:first-child{border-radius:2px 0 0 2px} .langbar button:last-child{border-radius:0 2px 2px 0}
+.langbar button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.langbar button:hover:not([aria-pressed="true"]){border-color:var(--accent);color:var(--accent)}
+html:lang(ko) body{word-break:keep-all}
+html:lang(ko) h1,html:lang(ko) h2,html:lang(ko) .focus-team{letter-spacing:0;font-weight:800}
+html:lang(ko) .eyebrow,html:lang(ko) th,html:lang(ko) .ctl label,html:lang(ko) .mwlab,html:lang(ko) .pill,html:lang(ko) .chip .k,html:lang(ko) .vs .k,html:lang(ko) .how h3,html:lang(ko) details summary{letter-spacing:.02em}
 details summary{cursor:pointer;font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em;font-weight:600;font-size:14px}
 details table{min-width:420px;margin-top:10px}
 </style>
@@ -156,34 +165,37 @@ details table{min-width:420px;margin-top:10px}
 <body>
 
 <div class="wrap">
+  <div class="langbar" role="group" aria-label="Language / 언어">
+    <button type="button" data-lang="en" lang="en">English</button><button type="button" data-lang="ko" lang="ko">한국어</button>
+  </div>
   <header>
     <div>
-      <div class="eyebrow">Unofficial fan project · Monte Carlo · Poisson goals model</div>
-      <h1>Premier League <span>26/27</span> Simulator</h1>
+      <div class="eyebrow" data-i18n="eyebrow">Unofficial fan project · Monte Carlo · Poisson goals model</div>
+      <h1 data-i18n="h1">Premier League <span>26/27</span> Simulator</h1>
     </div>
     <div class="asof" id="asof"></div>
   </header>
 
-  <section class="controls" aria-label="Simulation settings">
-    <div class="ctl"><label for="team">Your club</label><select id="team"></select></div>
-    <div class="ctl"><label for="form">Weight on 26/27 form: <b id="formv">2.5×</b></label><input id="form" type="range" min="0" max="6" step="0.5" value="2.5"></div>
-    <div class="ctl"><label for="sims">Seasons per projection</label>
+  <section class="controls" aria-label="Simulation settings" data-i18n-aria="settings">
+    <div class="ctl"><label for="team" data-i18n="yourClub">Your club</label><select id="team"></select></div>
+    <div class="ctl"><label for="form"><span data-i18n="formW">Weight on 26/27 form:</span> <b id="formv">2.5×</b></label><input id="form" type="range" min="0" max="6" step="0.5" value="2.5"></div>
+    <div class="ctl"><label for="sims" data-i18n="sims">Seasons per projection</label>
       <select id="sims"><option>2000</option><option selected>5000</option><option>10000</option></select></div>
     <div class="status" id="status" aria-live="polite"></div>
   </section>
 
-  <section class="dial" aria-label="Matchweek">
-    <div><div class="mwlab">Matchweek</div><div class="mwrow"><button class="step" data-step="-1" aria-label="Previous matchweek"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button><div class="mwnum" id="mwnum">10</div><button class="step" data-step="1" aria-label="Next matchweek"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button></div></div>
+  <section class="dial" aria-label="Matchweek" data-i18n-aria="matchweek">
+    <div><div class="mwlab" data-i18n="matchweek">Matchweek</div><div class="mwrow"><button class="step" data-step="-1" aria-label="Previous matchweek" data-i18n-aria="prevMW"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button><div class="mwnum" id="mwnum">10</div><button class="step" data-step="1" aria-label="Next matchweek" data-i18n-aria="nextMW"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button></div></div>
     <div class="mwstate"><span class="pill" id="mwpill"></span><span class="mwdesc" id="mwdesc"></span></div>
     <div class="track">
-      <input id="mw" type="range" min="1" max="38" step="1" value="10" aria-label="Matchweek">
+      <input id="mw" type="range" min="1" max="38" step="1" value="10" aria-label="Matchweek" data-i18n-aria="matchweek">
       <div class="ticks" id="ticks"></div>
     </div>
     <button class="play" id="play">▶ Play</button>
   </section>
 
   <div class="grid">
-    <section class="panel" aria-label="Club focus">
+    <section class="panel" aria-label="Club focus" data-i18n-aria="clubFocus">
       <div class="focus-head">
         <div class="eyebrow" id="f-eyebrow"></div>
         <div class="focus-team" id="f-team"></div>
@@ -194,62 +206,62 @@ details table{min-width:420px;margin-top:10px}
         <div class="chips" id="chips"></div>
       </div>
       <div>
-        <div class="eyebrow">Points through the season</div>
-        <svg id="traj" viewBox="0 0 380 210" width="100%" role="img" aria-label="Points trajectory"></svg>
+        <div class="eyebrow" data-i18n="ptsSeason">Points through the season</div>
+        <svg id="traj" viewBox="0 0 380 210" width="100%" role="img" aria-label="Points trajectory" data-i18n-aria="trajAria"></svg>
         <div class="key" id="trajkey"></div>
       </div>
       <div>
         <div class="eyebrow" id="dist-lab"></div>
-        <svg id="dist" viewBox="0 0 360 160" width="100%" role="img" aria-label="Position distribution"></svg>
+        <svg id="dist" viewBox="0 0 360 160" width="100%" role="img" aria-label="Position distribution" data-i18n-aria="distAria"></svg>
       </div>
     </section>
 
     <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
-      <section class="panel" aria-label="Table">
+      <section class="panel" aria-label="Table" data-i18n-aria="tableAria">
         <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px">
-          <div class="stephead"><button class="step" data-step="-1" aria-label="Previous matchweek"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button><h2 id="tbl-title"></h2><button class="step" data-step="1" aria-label="Next matchweek"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button></div>
-          <div class="legend"><span style="--c:var(--good)">Top 4</span><span style="--c:var(--warn)">Relegation (18–20)</span></div>
+          <div class="stephead"><button class="step" data-step="-1" aria-label="Previous matchweek" data-i18n-aria="prevMW"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button><h2 id="tbl-title"></h2><button class="step" data-step="1" aria-label="Next matchweek" data-i18n-aria="nextMW"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button></div>
+          <div class="legend"><span style="--c:var(--good)" data-i18n="top4">Top 4</span><span style="--c:var(--warn)" data-i18n="releg">Relegation (18–20)</span></div>
         </div>
         <div class="tablewrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
         <p class="note" id="tbl-note"></p>
       </section>
-      <section class="panel" aria-label="Matchweek games">
-        <div class="stephead"><button class="step" data-step="-1" aria-label="Previous matchweek"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button><h2 id="fx-title"></h2><button class="step" data-step="1" aria-label="Next matchweek"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button></div>
+      <section class="panel" aria-label="Matchweek games" data-i18n-aria="gamesAria">
+        <div class="stephead"><button class="step" data-step="-1" aria-label="Previous matchweek" data-i18n-aria="prevMW"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button><h2 id="fx-title"></h2><button class="step" data-step="1" aria-label="Next matchweek" data-i18n-aria="nextMW"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg></button></div>
         <div class="fixtures" id="fixtures"></div>
         <p class="note" id="fx-note"></p>
       </section>
     </div>
   </div>
 
-  <section class="panel" aria-label="Update log">
-    <h2>Update log</h2>
-    <p class="note">Results are refreshed once a day, after the evening's games. Each update is checked against the official table before it goes live.</p>
-    <div class="vstats" aria-label="Visitor stats">
-      <div class="vs"><span class="v" id="vs-total">–</span><span class="k">Total visits</span></div>
-      <div class="vs"><span class="v" id="vs-week">–</span><span class="k">This week</span></div>
-      <div class="vs"><span class="v" id="vs-days">–</span><span class="k">Days live</span></div>
+  <section class="panel" aria-label="Update log" data-i18n-aria="logH">
+    <h2 data-i18n="logH">Update log</h2>
+    <p class="note" data-i18n="logNote">Results are added automatically, usually within an hour of full time, from the official Fantasy Premier League data, and cross-checked against a second source before they go live.</p>
+    <div class="vstats" aria-label="Visitor stats" data-i18n-aria="vAria">
+      <div class="vs"><span class="v" id="vs-total">–</span><span class="k" data-i18n="vTotal">Total visits</span></div>
+      <div class="vs"><span class="v" id="vs-week">–</span><span class="k" data-i18n="vWeek">This week</span></div>
+      <div class="vs"><span class="v" id="vs-days">–</span><span class="k" data-i18n="vDays">Days live</span></div>
     </div>
     <ol class="log" id="log"></ol>
   </section>
 
-  <section class="panel" aria-label="How the model works">
-    <h2>How it works</h2>
+  <section class="panel" aria-label="How the model works" data-i18n-aria="howH">
+    <h2 data-i18n="howH">How it works</h2>
     <div class="how">
-      <div><h3>Ratings from history</h3><p>Each club gets an attack and a defence rating from goals scored and conceded per game, relative to the league average. 2025/26 counts fully, 2024/25 at 40%, and every club is pulled slightly toward average. Hull and Coventry start from a typical promoted-club baseline.</p></div>
-      <div><h3>Form at each matchweek</h3><p>When you pick a past matchweek, the model only knows results up to that week. Those results are blended in at the weight you set, then the rest of the season is played out. That is the projection it would have made at the time.</p></div>
-      <div><h3>Future matchweeks</h3><p>From today, every simulated season follows the real fixture list. Pick a future week to see where clubs are expected to stand after it, with ranges, not just the final table.</p></div>
-      <div><h3>Playing the matches</h3><p>Expected goals = league home or away scoring rate × attacker's attack × defender's defence. Goals are drawn from a Poisson distribution. Ties in the table split on goal difference, then goals scored.</p></div>
+      <div><h3 data-i18n="how1h">Ratings from history</h3><p data-i18n="how1p">Each club gets an attack and a defence rating from goals scored and conceded per game, relative to the league average. 2025/26 counts fully, 2024/25 at 40%, and every club is pulled slightly toward average. Hull and Coventry start from a typical promoted-club baseline.</p></div>
+      <div><h3 data-i18n="how2h">Form at each matchweek</h3><p data-i18n="how2p">When you pick a past matchweek, the model only knows results up to that week. Those results are blended in at the weight you set, then the rest of the season is played out. That is the projection it would have made at the time.</p></div>
+      <div><h3 data-i18n="how3h">Future matchweeks</h3><p data-i18n="how3p">From today, every simulated season follows the real fixture list. Pick a future week to see where clubs are expected to stand after it, with ranges, not just the final table.</p></div>
+      <div><h3 data-i18n="how4h">Playing the matches</h3><p data-i18n="how4p">Expected goals = league home or away scoring rate × attacker's attack × defender's defence. Goals are drawn from a Poisson distribution. Ties in the table split on goal difference, then goals scored.</p></div>
     </div>
     <details>
-      <summary>Team ratings at the selected matchweek</summary>
-      <div class="tablewrap"><table><thead><tr><th class="l">Club</th><th>Attack</th><th>Defence</th></tr></thead><tbody id="rbody"></tbody></table></div>
-      <p class="note">Attack above 1.00 scores more than average; defence below 1.00 concedes less than average.</p>
+      <summary data-i18n="ratingsSum">Team ratings at the selected matchweek</summary>
+      <div class="tablewrap"><table><thead><tr><th class="l" data-i18n="club">Club</th><th data-i18n="attack">Attack</th><th data-i18n="defence">Defence</th></tr></thead><tbody id="rbody"></tbody></table></div>
+      <p class="note" data-i18n="ratingsNote">Attack above 1.00 scores more than average; defence below 1.00 concedes less than average.</p>
     </details>
   </section>
 
   <footer class="foot">
-    <p>Unofficial fan project. Not affiliated with or endorsed by the Premier League or any club. Club names are used for identification only. Results and fixtures are compiled from public sources, and projections are the output of a statistical model, not betting odds.</p>
-    <p>Anonymous visit counts via GoatCounter (no cookies, no personal data).</p>
+    <p data-i18n="foot1">Unofficial fan project. Not affiliated with or endorsed by the Premier League or any club. Club names are used for identification only. Results and fixtures are compiled from public sources, and projections are the output of a statistical model, not betting odds.</p>
+    <p data-i18n="foot2">Anonymous visit counts via GoatCounter (no cookies, no personal data).</p>
   </footer>
 </div>
 
@@ -257,7 +269,7 @@ details table{min-width:420px;margin-top:10px}
 // ---------- Data ----------
 // Results MW1–10 and the official fixture list (premierleague.com), reconciled with the table on 8 Nov 2026.
 // played: [matchweek, home, homeGoals, awayGoals, away]; future: [matchweek, home, away]
-const D = {"teams":["Arsenal","Man City","Brighton","Chelsea","Everton","Liverpool","Brentford","Leeds","Bournemouth","Tottenham","Newcastle","Aston Villa","Hull City","Ipswich","Fulham","Nottm Forest","Coventry","Man Utd","Crystal Palace","Sunderland"],"played":[[1,0,3,0,16],[1,1,2,1,8],[1,2,4,0,11],[1,4,2,0,18],[1,6,3,0,9],[1,10,2,2,5],[1,12,2,0,17],[1,13,2,1,19],[1,14,2,3,3],[1,15,0,1,7],[2,3,4,3,2],[2,5,2,2,15],[2,7,1,1,6],[2,8,1,1,4],[2,9,0,2,10],[2,11,0,1,0],[2,16,0,1,12],[2,17,5,2,13],[2,18,1,4,1],[2,19,1,0,14],[3,0,2,1,3],[3,1,1,0,16],[3,2,1,1,7],[3,4,2,2,17],[3,6,1,1,19],[3,10,2,2,8],[3,12,0,0,11],[3,13,0,2,5],[3,14,2,3,18],[3,15,0,0,9],[4,3,2,2,12],[4,5,0,0,14],[4,7,4,1,10],[4,8,2,2,6],[4,9,0,0,4],[4,11,1,2,15],[4,16,0,5,2],[4,17,0,1,1],[4,18,2,3,13],[4,19,0,2,0],[5,1,5,3,19],[5,2,3,0,0],[5,4,1,0,13],[5,6,3,0,3],[5,7,0,0,18],[5,8,0,1,5],[5,9,2,3,11],[5,10,2,1,12],[5,14,1,1,17],[5,15,0,1,16],[6,0,2,1,7],[6,3,5,1,8],[6,5,0,3,1],[6,11,2,2,6],[6,12,2,2,4],[6,13,2,1,14],[6,16,4,1,10],[6,17,1,1,9],[6,18,3,1,15],[6,19,0,2,2],[7,1,3,2,13],[7,2,5,0,18],[7,4,0,2,3],[7,6,1,2,5],[7,7,1,1,17],[7,8,2,0,19],[7,9,3,1,16],[7,10,0,1,11],[7,14,1,0,12],[7,15,0,1,0],[8,0,2,0,4],[8,3,0,2,9],[8,5,2,0,2],[8,11,2,1,1],[8,12,1,1,6],[8,13,1,1,15],[8,16,0,1,14],[8,17,0,3,8],[8,18,0,2,10],[8,19,0,0,7],[9,1,0,1,2],[9,3,2,0,17],[9,5,0,1,0],[9,6,2,0,15],[9,8,2,0,7],[9,9,2,0,18],[9,10,0,1,4],[9,11,1,1,14],[9,12,2,2,13],[9,16,3,1,19],[10,0,1,0,12],[10,2,2,0,6],[10,4,3,1,16],[10,7,1,0,9],[10,13,1,2,8],[10,14,1,1,10],[10,15,3,1,1],[10,17,4,4,11],[10,18,1,3,5],[10,19,1,0,3],[11,1,1,1,14],[11,3,1,4,7],[11,5,4,0,17],[11,8,2,0,15],[11,9,2,0,13],[11,10,2,2,0],[11,11,0,0,19],[11,12,2,0,2],[11,16,3,2,18]],"future":[[11,6,4],[12,0,1],[12,2,10],[12,4,5],[12,7,16],[12,13,11],[12,14,8],[12,15,3],[12,17,6],[12,18,12],[12,19,9],[13,1,7],[13,3,18],[13,5,19],[13,6,0],[13,8,2],[13,9,14],[13,10,17],[13,11,4],[13,12,15],[13,16,13],[14,3,5],[14,4,14],[14,6,1],[14,7,13],[14,8,12],[14,9,0],[14,10,19],[14,11,18],[14,15,2],[14,17,16],[15,0,8],[15,1,3],[15,2,4],[15,5,7],[15,12,9],[15,13,10],[15,14,6],[15,16,11],[15,18,17],[15,19,15],[16,0,17],[16,1,12],[16,2,13],[16,3,11],[16,5,9],[16,6,10],[16,7,14],[16,8,16],[16,15,4],[16,19,18],[17,4,19],[17,9,8],[17,10,1],[17,11,7],[17,12,5],[17,13,6],[17,14,2],[17,16,3],[17,17,15],[17,18,0],[18,4,1],[18,9,2],[18,10,15],[18,11,5],[18,12,7],[18,13,3],[18,14,0],[18,16,6],[18,17,19],[18,18,8],[19,0,13],[19,1,9],[19,2,17],[19,3,10],[19,5,16],[19,6,18],[19,7,4],[19,8,11],[19,15,14],[19,19,12],[20,0,6],[20,2,8],[20,4,11],[20,7,1],[20,13,16],[20,14,9],[20,15,12],[20,17,10],[20,18,3],[20,19,5],[21,1,15],[21,3,19],[21,5,18],[21,6,2],[21,8,13],[21,9,7],[21,10,14],[21,11,17],[21,12,0],[21,16,4],[22,0,10],[22,2,1],[22,4,6],[22,7,3],[22,13,12],[22,14,11],[22,15,8],[22,17,5],[22,18,9],[22,19,16],[23,1,0],[23,3,15],[23,5,4],[23,6,17],[23,8,14],[23,9,19],[23,10,2],[23,11,13],[23,12,18],[23,16,7],[24,0,5],[24,2,12],[24,4,10],[24,7,8],[24,13,9],[24,14,1],[24,15,6],[24,17,3],[24,18,16],[24,19,11],[25,4,7],[25,9,1],[25,10,3],[25,11,8],[25,12,19],[25,13,0],[25,14,15],[25,16,5],[25,17,2],[25,18,6],[26,0,14],[26,1,10],[26,2,9],[26,3,13],[26,5,12],[26,6,16],[26,7,11],[26,8,18],[26,15,17],[26,19,4],[27,4,15],[27,9,5],[27,10,6],[27,11,3],[27,12,1],[27,13,2],[27,14,7],[27,16,8],[27,17,0],[27,18,19],[28,0,18],[28,1,4],[28,2,14],[28,3,16],[28,5,11],[28,6,13],[28,7,12],[28,8,9],[28,15,10],[28,19,17],[29,3,0],[29,5,13],[29,7,2],[29,8,10],[29,9,15],[29,11,12],[29,16,1],[29,17,4],[29,18,14],[29,19,6],[30,0,19],[30,1,17],[30,2,16],[30,4,9],[30,6,8],[30,10,7],[30,12,3],[30,13,18],[30,14,5],[30,15,11],[31,3,14],[31,5,10],[31,7,15],[31,8,1],[31,9,6],[31,11,2],[31,16,0],[31,17,12],[31,18,4],[31,19,13],[32,0,11],[32,1,18],[32,2,3],[32,4,8],[32,6,7],[32,10,9],[32,12,16],[32,13,17],[32,14,19],[32,15,5],[33,3,1],[33,4,2],[33,6,14],[33,7,5],[33,8,0],[33,9,12],[33,10,13],[33,11,16],[33,15,19],[33,17,18],[34,0,9],[34,1,6],[34,2,15],[34,5,3],[34,12,8],[34,13,7],[34,14,4],[34,16,17],[34,18,11],[34,19,10],[35,1,5],[35,2,19],[35,4,12],[35,6,11],[35,7,0],[35,8,17],[35,9,3],[35,10,16],[35,14,13],[35,15,18],[36,0,15],[36,3,4],[36,5,6],[36,11,10],[36,12,14],[36,13,1],[36,16,9],[36,17,7],[36,18,2],[36,19,8],[37,1,11],[37,2,5],[37,4,0],[37,6,12],[37,7,19],[37,8,3],[37,9,17],[37,10,18],[37,14,16],[37,15,13],[38,0,2],[38,3,6],[38,5,8],[38,11,9],[38,12,10],[38,13,4],[38,16,15],[38,17,14],[38,18,7],[38,19,1]],"asof":"Mon 23 Nov 2026","log":[{"date":"2026-11-08","note":"Simulator launched with results through Saturday's matchweek 10 games (95 of 380) and the official fixture list. Matchweek slider added."},{"date":"2026-11-08","note":"Added 5 matchweek 10 results: Brighton 2–0 Brentford, Ipswich 1–2 Bournemouth, Man Utd 4–4 Aston Villa, Crystal Palace 1–3 Liverpool, Sunderland 1–0 Chelsea. Matchweek 10 complete."},{"date":"2026-11-21","note":"Added 7 matchweek 11 results: Man City 1–1 Fulham, Chelsea 1–4 Leeds, Bournemouth 2–0 Nottm Forest, Tottenham 2–0 Ipswich, Newcastle 2–2 Arsenal, Aston Villa 0–0 Sunderland, Coventry 3–2 Crystal Palace."},{"date":"2026-11-23","note":"Added 2 matchweek 11 results from Sunday: Liverpool 4–0 Man Utd, Hull City 2–0 Brighton. Brentford v Everton still to play."}]};
+const D = {"teams":["Arsenal","Man City","Brighton","Chelsea","Everton","Liverpool","Brentford","Leeds","Bournemouth","Tottenham","Newcastle","Aston Villa","Hull City","Ipswich","Fulham","Nottm Forest","Coventry","Man Utd","Crystal Palace","Sunderland"],"played":[[1,0,3,0,16],[1,1,2,1,8],[1,2,4,0,11],[1,4,2,0,18],[1,6,3,0,9],[1,10,2,2,5],[1,12,2,0,17],[1,13,2,1,19],[1,14,2,3,3],[1,15,0,1,7],[2,3,4,3,2],[2,5,2,2,15],[2,7,1,1,6],[2,8,1,1,4],[2,9,0,2,10],[2,11,0,1,0],[2,16,0,1,12],[2,17,5,2,13],[2,18,1,4,1],[2,19,1,0,14],[3,0,2,1,3],[3,1,1,0,16],[3,2,1,1,7],[3,4,2,2,17],[3,6,1,1,19],[3,10,2,2,8],[3,12,0,0,11],[3,13,0,2,5],[3,14,2,3,18],[3,15,0,0,9],[4,3,2,2,12],[4,5,0,0,14],[4,7,4,1,10],[4,8,2,2,6],[4,9,0,0,4],[4,11,1,2,15],[4,16,0,5,2],[4,17,0,1,1],[4,18,2,3,13],[4,19,0,2,0],[5,1,5,3,19],[5,2,3,0,0],[5,4,1,0,13],[5,6,3,0,3],[5,7,0,0,18],[5,8,0,1,5],[5,9,2,3,11],[5,10,2,1,12],[5,14,1,1,17],[5,15,0,1,16],[6,0,2,1,7],[6,3,5,1,8],[6,5,0,3,1],[6,11,2,2,6],[6,12,2,2,4],[6,13,2,1,14],[6,16,4,1,10],[6,17,1,1,9],[6,18,3,1,15],[6,19,0,2,2],[7,1,3,2,13],[7,2,5,0,18],[7,4,0,2,3],[7,6,1,2,5],[7,7,1,1,17],[7,8,2,0,19],[7,9,3,1,16],[7,10,0,1,11],[7,14,1,0,12],[7,15,0,1,0],[8,0,2,0,4],[8,3,0,2,9],[8,5,2,0,2],[8,11,2,1,1],[8,12,1,1,6],[8,13,1,1,15],[8,16,0,1,14],[8,17,0,3,8],[8,18,0,2,10],[8,19,0,0,7],[9,1,0,1,2],[9,3,2,0,17],[9,5,0,1,0],[9,6,2,0,15],[9,8,2,0,7],[9,9,2,0,18],[9,10,0,1,4],[9,11,1,1,14],[9,12,2,2,13],[9,16,3,1,19],[10,0,1,0,12],[10,2,2,0,6],[10,4,3,1,16],[10,7,1,0,9],[10,13,1,2,8],[10,14,1,1,10],[10,15,3,1,1],[10,17,4,4,11],[10,18,1,3,5],[10,19,1,0,3],[11,1,1,1,14],[11,3,1,4,7],[11,5,4,0,17],[11,8,2,0,15],[11,9,2,0,13],[11,10,2,2,0],[11,11,0,0,19],[11,12,2,0,2],[11,16,3,2,18]],"future":[[11,6,4],[12,0,1],[12,2,10],[12,4,5],[12,7,16],[12,13,11],[12,14,8],[12,15,3],[12,17,6],[12,18,12],[12,19,9],[13,1,7],[13,3,18],[13,5,19],[13,6,0],[13,8,2],[13,9,14],[13,10,17],[13,11,4],[13,12,15],[13,16,13],[14,3,5],[14,4,14],[14,6,1],[14,7,13],[14,8,12],[14,9,0],[14,10,19],[14,11,18],[14,15,2],[14,17,16],[15,0,8],[15,1,3],[15,2,4],[15,5,7],[15,12,9],[15,13,10],[15,14,6],[15,16,11],[15,18,17],[15,19,15],[16,0,17],[16,1,12],[16,2,13],[16,3,11],[16,5,9],[16,6,10],[16,7,14],[16,8,16],[16,15,4],[16,19,18],[17,4,19],[17,9,8],[17,10,1],[17,11,7],[17,12,5],[17,13,6],[17,14,2],[17,16,3],[17,17,15],[17,18,0],[18,4,1],[18,9,2],[18,10,15],[18,11,5],[18,12,7],[18,13,3],[18,14,0],[18,16,6],[18,17,19],[18,18,8],[19,0,13],[19,1,9],[19,2,17],[19,3,10],[19,5,16],[19,6,18],[19,7,4],[19,8,11],[19,15,14],[19,19,12],[20,0,6],[20,2,8],[20,4,11],[20,7,1],[20,13,16],[20,14,9],[20,15,12],[20,17,10],[20,18,3],[20,19,5],[21,1,15],[21,3,19],[21,5,18],[21,6,2],[21,8,13],[21,9,7],[21,10,14],[21,11,17],[21,12,0],[21,16,4],[22,0,10],[22,2,1],[22,4,6],[22,7,3],[22,13,12],[22,14,11],[22,15,8],[22,17,5],[22,18,9],[22,19,16],[23,1,0],[23,3,15],[23,5,4],[23,6,17],[23,8,14],[23,9,19],[23,10,2],[23,11,13],[23,12,18],[23,16,7],[24,0,5],[24,2,12],[24,4,10],[24,7,8],[24,13,9],[24,14,1],[24,15,6],[24,17,3],[24,18,16],[24,19,11],[25,4,7],[25,9,1],[25,10,3],[25,11,8],[25,12,19],[25,13,0],[25,14,15],[25,16,5],[25,17,2],[25,18,6],[26,0,14],[26,1,10],[26,2,9],[26,3,13],[26,5,12],[26,6,16],[26,7,11],[26,8,18],[26,15,17],[26,19,4],[27,4,15],[27,9,5],[27,10,6],[27,11,3],[27,12,1],[27,13,2],[27,14,7],[27,16,8],[27,17,0],[27,18,19],[28,0,18],[28,1,4],[28,2,14],[28,3,16],[28,5,11],[28,6,13],[28,7,12],[28,8,9],[28,15,10],[28,19,17],[29,3,0],[29,5,13],[29,7,2],[29,8,10],[29,9,15],[29,11,12],[29,16,1],[29,17,4],[29,18,14],[29,19,6],[30,0,19],[30,1,17],[30,2,16],[30,4,9],[30,6,8],[30,10,7],[30,12,3],[30,13,18],[30,14,5],[30,15,11],[31,3,14],[31,5,10],[31,7,15],[31,8,1],[31,9,6],[31,11,2],[31,16,0],[31,17,12],[31,18,4],[31,19,13],[32,0,11],[32,1,18],[32,2,3],[32,4,8],[32,6,7],[32,10,9],[32,12,16],[32,13,17],[32,14,19],[32,15,5],[33,3,1],[33,4,2],[33,6,14],[33,7,5],[33,8,0],[33,9,12],[33,10,13],[33,11,16],[33,15,19],[33,17,18],[34,0,9],[34,1,6],[34,2,15],[34,5,3],[34,12,8],[34,13,7],[34,14,4],[34,16,17],[34,18,11],[34,19,10],[35,1,5],[35,2,19],[35,4,12],[35,6,11],[35,7,0],[35,8,17],[35,9,3],[35,10,16],[35,14,13],[35,15,18],[36,0,15],[36,3,4],[36,5,6],[36,11,10],[36,12,14],[36,13,1],[36,16,9],[36,17,7],[36,18,2],[36,19,8],[37,1,11],[37,2,5],[37,4,0],[37,6,12],[37,7,19],[37,8,3],[37,9,17],[37,10,18],[37,14,16],[37,15,13],[38,0,2],[38,3,6],[38,5,8],[38,11,9],[38,12,10],[38,13,4],[38,16,15],[38,17,14],[38,18,7],[38,19,1]],"asof":"Mon 23 Nov 2026","log":[{"date":"2026-11-08","note":"Simulator launched with results through Saturday's matchweek 10 games (95 of 380) and the official fixture list. Matchweek slider added.","note_ko":"시뮬레이터 공개: 10라운드 토요일 경기까지의 결과(380경기 중 95경기)와 공식 경기 일정을 반영했습니다. 라운드 슬라이더를 추가했습니다."},{"date":"2026-11-08","note":"Added 5 matchweek 10 results: Brighton 2–0 Brentford, Ipswich 1–2 Bournemouth, Man Utd 4–4 Aston Villa, Crystal Palace 1–3 Liverpool, Sunderland 1–0 Chelsea. Matchweek 10 complete.","note_ko":"10라운드 결과 5경기 추가: 브라이턴 2–0 브렌트퍼드, 입스위치 1–2 본머스, 맨유 4–4 아스톤 빌라, 크리스털 팰리스 1–3 리버풀, 선덜랜드 1–0 첼시. 10라운드 완료."},{"date":"2026-11-21","note":"Added 7 matchweek 11 results: Man City 1–1 Fulham, Chelsea 1–4 Leeds, Bournemouth 2–0 Nottm Forest, Tottenham 2–0 Ipswich, Newcastle 2–2 Arsenal, Aston Villa 0–0 Sunderland, Coventry 3–2 Crystal Palace.","note_ko":"11라운드 결과 7경기 추가: 맨시티 1–1 풀럼, 첼시 1–4 리즈, 본머스 2–0 노팅엄 포레스트, 토트넘 2–0 입스위치, 뉴캐슬 2–2 아스널, 아스톤 빌라 0–0 선덜랜드, 코번트리 3–2 크리스털 팰리스."},{"date":"2026-11-23","note":"Added 2 matchweek 11 results from Sunday: Liverpool 4–0 Man Utd, Hull City 2–0 Brighton. Brentford v Everton still to play.","note_ko":"일요일 11라운드 결과 2경기 추가: 리버풀 4–0 맨유, 헐 시티 2–0 브라이턴. 브렌트퍼드 대 에버턴 경기는 아직 남았습니다.","games":[[11,5,4,0,17],[11,12,2,0,2]]}],"asof_iso":"2026-11-23"};
 const TEAMS = D.teams, N = TEAMS.length, IDX = Object.fromEntries(TEAMS.map((t,i)=>[t,i]));
 const PLAYED = D.played, FUTURE = D.future;
 const CUR = Math.max(...PLAYED.map(g=>g[0]));                  // 10, in progress
@@ -275,6 +287,116 @@ const S2425 = {"Liverpool":[86,41],"Arsenal":[69,34],"Man City":[72,44],"Chelsea
  "Everton":[42,44],"West Ham":[46,62],"Man Utd":[44,54],"Wolves":[54,69],"Tottenham":[64,65],"Leicester":[33,80],"Ipswich":[36,82],"Southampton":[26,86]};
 const MU_H = 580/380, MU_A = 465/380;   // 2025/26 home and away goals per game
 const PROMOTED = new Set(["Hull City","Ipswich","Coventry"]);
+
+// ---------- Language (English / 한국어) ----------
+const KO_TEAMS = {"Arsenal":"아스널","Man City":"맨시티","Brighton":"브라이턴","Chelsea":"첼시","Everton":"에버턴","Liverpool":"리버풀",
+ "Brentford":"브렌트퍼드","Leeds":"리즈","Bournemouth":"본머스","Tottenham":"토트넘","Newcastle":"뉴캐슬","Aston Villa":"아스톤 빌라",
+ "Hull City":"헐 시티","Ipswich":"입스위치","Fulham":"풀럼","Nottm Forest":"노팅엄 포레스트","Coventry":"코번트리","Man Utd":"맨유",
+ "Crystal Palace":"크리스털 팰리스","Sunderland":"선덜랜드"};
+const STR = {
+ en:{
+  title:"Unofficial PL 26/27 Simulator",
+  desc:"Unofficial fan-made Monte Carlo simulator for the 2026/27 English top-flight season: actual tables, projections by matchweek, title, top-4 and relegation odds.",
+  eyebrow:"Unofficial fan project · Monte Carlo · Poisson goals model", h1:"Premier League <span>26/27</span> Simulator",
+  settings:"Simulation settings", yourClub:"Your club", formW:"Weight on 26/27 form:", sims:"Seasons per projection",
+  matchweek:"Matchweek", prevMW:"Previous matchweek", nextMW:"Next matchweek", play:"▶ Play", pause:"❚❚ Pause",
+  clubFocus:"Club focus", ptsSeason:"Points through the season", trajAria:"Points trajectory", distAria:"Position distribution",
+  tableAria:"Table", top4:"Top 4", releg:"Relegation (18–20)", gamesAria:"Matchweek games",
+  logH:"Update log", logNote:"Results are added automatically, usually within an hour of full time, from the official Fantasy Premier League data, and cross-checked against a second source before they go live.",
+  vAria:"Visitor stats", vTotal:"Total visits", vWeek:"This week", vDays:"Days live", howH:"How it works",
+  how1h:"Ratings from history", how1p:"Each club gets an attack and a defence rating from goals scored and conceded per game, relative to the league average. 2025/26 counts fully, 2024/25 at 40%, and every club is pulled slightly toward average. Hull and Coventry start from a typical promoted-club baseline.",
+  how2h:"Form at each matchweek", how2p:"When you pick a past matchweek, the model only knows results up to that week. Those results are blended in at the weight you set, then the rest of the season is played out. That is the projection it would have made at the time.",
+  how3h:"Future matchweeks", how3p:"From today, every simulated season follows the real fixture list. Pick a future week to see where clubs are expected to stand after it, with ranges, not just the final table.",
+  how4h:"Playing the matches", how4p:"Expected goals = league home or away scoring rate × attacker's attack × defender's defence. Goals are drawn from a Poisson distribution. Ties in the table split on goal difference, then goals scored.",
+  ratingsSum:"Team ratings at the selected matchweek", club:"Club", attack:"Attack", defence:"Defence",
+  ratingsNote:"Attack above 1.00 scores more than average; defence below 1.00 concedes less than average.",
+  foot1:"Unofficial fan project. Not affiliated with or endorsed by the Premier League or any club. Club names are used for identification only. Results and fixtures are compiled from public sources, and projections are the output of a statistical model, not betting odds.",
+  foot2:"Anonymous visit counts via GoatCounter (no cookies, no personal data).",
+  pPlayed:"Played", dPlayed:"Actual table, plus the projection the model would have made after this week.",
+  pLatest:"Latest", dLatest:"Most recent completed matchweek. Actual table, plus the current projection.",
+  pLive:n=>`In progress · ${n} of 10`, dLive:"Actual table so far, plus the current projection.",
+  pProj:"Projected", dProj:w=>`Where clubs are expected to stand after matchweek ${w}, based on today's ratings and the real fixture list.`,
+  tblToday:"Table today, with current projection", tblAfter:w=>`Table after matchweek ${w}, with projection made then`,
+  tblFinal:"Projected final table", tblProjAfter:w=>`Projected table after matchweek ${w}`,
+  hActual:w=>`Actual after MW${w}`, hProjFinal:w=>`Projected final table, as of MW${w}`,
+  thClub:"Club", thP:"P", thW:"W", thD:"D", thL:"L", thGD:"GD", thPts:"Pts", expPts:"Exp. pts", tTitle:"Title", tTop4:"Top 4", tDown:"Down", tFinal:"Final 1 → 20",
+  hToday:"Today", hProjAfter:w=>`Projected after MW${w}`, thClubPrev:`Club <span class="prev">25/26</span>`,
+  likely:"Likely range", first:"1st", bottom3:"Bottom 3", posRange:"Position 1 → 20", promoted:"Promoted",
+  notePast:w=>`The projection columns only use results up to matchweek ${w}. Slide forward to see how it held up.`,
+  noteDone:"Latest results included.", noteLive:"This matchweek's unplayed games are treated as unplayed in every simulation.",
+  noteClick:" Click any row to make it your focus club.", noteFuture:n=>`Likely range covers 80% of simulated seasons. ${n} seasons simulated from today.`,
+  fToday:"Today", fAfter:w=>`After matchweek ${w}`, fProjAfter:w=>`Projected after matchweek ${w}`,
+  fLinePast:(pos,pts,fr,ef,lo,hi)=>`Actually <b>${pos}</b> on <b>${pts}</b> pts. Projected to finish <b>${fr}</b> on <b>${ef}</b> (range ${lo}–${hi}).`,
+  fLineFut:(rk,e,lo,hi,fr,ef)=>`Expected <b>${rk}</b> on <b>${e}</b> pts (range ${lo}–${hi}). Final: <b>${fr}</b>, <b>${ef}</b> pts.`,
+  chipsToday:"Final-table chances, today", chipsAfter:w=>`Final-table chances, as seen after MW${w}`,
+  cTitle:"Title", cTop4:"Top 4", cTop5:"Top 5", cReleg:"Relegated",
+  distPast:w=>`Final position, % of seasons simulated after MW${w}`, distFut:w=>`Position after MW${w}, % of simulated seasons`,
+  mwShort:w=>`MW${w}`, kActual:"Actual points", kNext:"What happened next", kMedian:"Projected median", kRange:"80% range",
+  fxTitle:w=>`Matchweek ${w} games`, fxPre:p=>`pre-match ${p}% for this result`, vs:"v", fxLikely:(a,b,x,y)=>`likeliest ${a}–${b} · xG ${x}–${y}`,
+  fxNoteBoth:"Played games show the model's pre-match home / draw / away odds, with the actual outcome outlined. Unplayed games use today's ratings.",
+  fxNoteDone:"Bars show the model's pre-match home / draw / away odds using only earlier results. The actual outcome is outlined.",
+  fxNoteTodo:"Home / draw / away odds from today's ratings.",
+  simulating:"Simulating…", simDone:(n,s)=>`${n} seasons in ${s}s`, now:"Now",
+  asof:(n,c,done,when)=>`${n} of 380 matches played · Matchweek ${c} ${done?"complete":"in progress"}<br>Data as of ${when}`,
+  locale:"en-GB"
+ },
+ ko:{
+  title:"비공식 PL 26/27 시뮬레이터",
+  desc:"잉글랜드 1부 리그 2026/27 시즌을 위한 비공식 팬 제작 몬테카를로 시뮬레이터: 실제 순위표, 라운드별 예측, 우승·4위 이내·강등 확률.",
+  eyebrow:"비공식 팬 프로젝트 · 몬테카를로 · 푸아송 득점 모델", h1:"프리미어리그 <span>26/27</span> 시뮬레이터",
+  settings:"시뮬레이션 설정", yourClub:"응원하는 팀", formW:"26/27 시즌 성적 반영 비중:", sims:"예측당 시뮬레이션 시즌 수",
+  matchweek:"라운드", prevMW:"이전 라운드", nextMW:"다음 라운드", play:"▶ 재생", pause:"❚❚ 일시정지",
+  clubFocus:"팀 상세", ptsSeason:"시즌 누적 승점", trajAria:"승점 추이", distAria:"순위 분포",
+  tableAria:"순위표", top4:"4위 이내", releg:"강등권 (18–20위)", gamesAria:"라운드 경기",
+  logH:"업데이트 기록", logNote:"경기가 끝나면 보통 1시간 안에 공식 판타지 프리미어리그 데이터로 결과가 자동 반영됩니다. 반영 전에는 다른 출처와 대조해 확인합니다.",
+  vAria:"방문 통계", vTotal:"누적 방문", vWeek:"이번 주", vDays:"운영 일수", howH:"작동 방식",
+  how1h:"과거 기록으로 만든 능력치", how1p:"각 팀의 공격·수비 능력치는 경기당 득점과 실점을 리그 평균과 비교해 정합니다. 2025/26 시즌은 100%, 2024/25 시즌은 40% 반영하고, 모든 팀을 평균 쪽으로 조금씩 당깁니다. 헐 시티와 코번트리는 일반적인 승격 팀 기준값에서 출발합니다.",
+  how2h:"라운드별 시즌 성적", how2p:"지난 라운드를 고르면 모델은 그 라운드까지의 결과만 압니다. 그 결과를 설정한 비중만큼 섞은 뒤 남은 시즌을 끝까지 치러 봅니다. 그 시점에 모델이 내놓았을 예측입니다.",
+  how3h:"앞으로의 라운드", how3p:"오늘부터의 모든 시뮬레이션 시즌은 실제 경기 일정을 따릅니다. 앞으로의 라운드를 고르면 그 라운드가 끝났을 때 각 팀의 예상 순위를 최종 순위표만이 아니라 범위와 함께 볼 수 있습니다.",
+  how4h:"경기 진행 방식", how4p:"기대 득점 = 리그 홈 또는 원정 평균 득점 × 공격 팀의 공격력 × 상대 팀의 수비력. 득점은 푸아송 분포에서 뽑습니다. 승점이 같으면 골득실, 그다음 다득점 순으로 순위를 정합니다.",
+  ratingsSum:"선택한 라운드 기준 팀 능력치", club:"팀", attack:"공격", defence:"수비",
+  ratingsNote:"공격이 1.00보다 높으면 평균보다 많이 넣고, 수비가 1.00보다 낮으면 평균보다 적게 실점합니다.",
+  foot1:"비공식 팬 프로젝트입니다. 프리미어리그나 어떤 구단과도 관련이 없으며 승인받지 않았습니다. 구단 이름은 식별 목적으로만 사용합니다. 결과와 경기 일정은 공개 자료를 모은 것이며, 예측은 통계 모델의 결과일 뿐 베팅 배당이 아닙니다.",
+  foot2:"방문 수는 GoatCounter로 익명 집계합니다 (쿠키 없음, 개인 정보 없음).",
+  pPlayed:"종료", dPlayed:"실제 순위표와, 이 라운드 직후 모델이 내놓았을 예측입니다.",
+  pLatest:"최신", dLatest:"가장 최근에 끝난 라운드입니다. 실제 순위표와 현재 예측입니다.",
+  pLive:n=>`진행 중 · 10경기 중 ${n}경기`, dLive:"지금까지의 실제 순위표와 현재 예측입니다.",
+  pProj:"예측", dProj:w=>`오늘의 능력치와 실제 경기 일정으로 본 ${w}라운드 후 예상 순위입니다.`,
+  tblToday:"현재 순위표와 최신 예측", tblAfter:w=>`${w}라운드 후 순위표와 당시 예측`,
+  tblFinal:"최종 순위 예측", tblProjAfter:w=>`${w}라운드 후 예상 순위`,
+  hActual:w=>`${w}라운드 후 실제`, hProjFinal:w=>`${w}라운드 기준 최종 순위 예측`,
+  thClub:"팀", thP:"경기", thW:"승", thD:"무", thL:"패", thGD:"득실", thPts:"승점", expPts:"예상 승점", tTitle:"우승", tTop4:"4위 이내", tDown:"강등", tFinal:"최종 순위",
+  hToday:"현재", hProjAfter:w=>`${w}라운드 후 예측`, thClubPrev:`팀 <span class="prev">25/26</span>`,
+  likely:"예상 범위", first:"1위", bottom3:"하위 3팀", posRange:"순위 분포", promoted:"승격",
+  notePast:w=>`예측 열은 ${w}라운드까지의 결과만 사용합니다. 앞으로 넘겨 보며 예측이 얼마나 맞았는지 확인해 보세요.`,
+  noteDone:"최신 결과가 반영되었습니다.", noteLive:"이번 라운드의 남은 경기는 모든 시뮬레이션에서 아직 치르지 않은 경기로 계산합니다.",
+  noteClick:" 행을 누르면 그 팀을 기준 팀으로 바꿉니다.", noteFuture:n=>`예상 범위는 시뮬레이션 시즌의 80%를 포함합니다. 오늘부터 ${n}시즌을 시뮬레이션했습니다.`,
+  fToday:"현재", fAfter:w=>`${w}라운드 후`, fProjAfter:w=>`${w}라운드 후 예측`,
+  fLinePast:(pos,pts,fr,ef,lo,hi)=>`실제 <b>${pos}</b>, 승점 <b>${pts}</b>. 최종 <b>${fr}</b>, 승점 <b>${ef}</b> 예상 (범위 ${lo}–${hi}).`,
+  fLineFut:(rk,e,lo,hi,fr,ef)=>`예상 <b>${rk}</b>, 승점 <b>${e}</b> (범위 ${lo}–${hi}). 최종: <b>${fr}</b>, 승점 <b>${ef}</b>.`,
+  chipsToday:"최종 순위 확률 (현재)", chipsAfter:w=>`${w}라운드 시점의 최종 순위 확률`,
+  cTitle:"우승", cTop4:"4위 이내", cTop5:"5위 이내", cReleg:"강등",
+  distPast:w=>`최종 순위 분포 (${w}라운드 후 시뮬레이션, %)`, distFut:w=>`${w}라운드 후 순위 분포 (시뮬레이션, %)`,
+  mwShort:w=>`${w}R`, kActual:"실제 승점", kNext:"이후 실제 결과", kMedian:"예측 중앙값", kRange:"80% 범위",
+  fxTitle:w=>`${w}라운드 경기`, fxPre:p=>`경기 전 이 결과 확률 ${p}%`, vs:"vs", fxLikely:(a,b,x,y)=>`최다 예상 스코어 ${a}–${b} · xG ${x}–${y}`,
+  fxNoteBoth:"끝난 경기는 모델의 경기 전 홈 승 / 무 / 원정 승 확률이며, 실제 결과에 테두리를 표시했습니다. 남은 경기는 오늘의 능력치를 사용합니다.",
+  fxNoteDone:"막대는 이전 결과만으로 계산한 모델의 경기 전 홈 승 / 무 / 원정 승 확률입니다. 실제 결과에 테두리를 표시했습니다.",
+  fxNoteTodo:"오늘의 능력치로 계산한 홈 승 / 무 / 원정 승 확률입니다.",
+  simulating:"시뮬레이션 중…", simDone:(n,s)=>`${n}시즌 ${s}초`, now:"현재",
+  asof:(n,c,done,when)=>`380경기 중 ${n}경기 종료 · ${c}라운드 ${done?"완료":"진행 중"}<br>데이터 기준: ${when}`,
+  locale:"ko-KR"
+ }
+};
+let LANG = "en";
+try{
+  const q = new URLSearchParams(location.search).get("lang"), s = localStorage.getItem("plsim-lang");
+  const nav = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language||""]);
+  LANG = (q==="ko"||q==="en") ? q : (s==="ko"||s==="en") ? s : (nav.some(l=>/^ko\b/i.test(l)) ? "ko" : "en");
+}catch(e){}
+const L = k => (STR[LANG][k] !== undefined ? STR[LANG][k] : STR.en[k]);
+const tx = L;   // alias for functions that use a local variable named L
+const tn = t => LANG==="ko" ? (KO_TEAMS[t]||t) : t;
+const num = n => (+n).toLocaleString(L("locale"));
 
 // ---------- State ----------
 let focus = "Liverpool", week = CUR, cache = {}, playing = null;
@@ -356,7 +478,7 @@ function matchProbs(h,a,R){
 
 // ---------- Helpers ----------
 const pct = v => v>=0.995?">99":v<0.005&&v>0?"<1":Math.round(v*100)+"";
-const ord = n => { const s=["th","st","nd","rd"], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
+const ord = n => { if(LANG==="ko") return n+"위"; const s=["th","st","nd","rd"], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
 const sumP = (d,a,b)=>d.slice(a,b).reduce((x,y)=>x+y,0);
 const strip = (d,cls)=>`<div class="strip ${cls}">${d.map(v=>`<i style="opacity:${v<0.002?0.05:Math.min(1,0.12+Math.sqrt(v)*1.4).toFixed(2)}"></i>`).join("")}</div>`;
 const ptsHistory = i => TABLES.map(t=>t[i].Pts);
@@ -367,48 +489,48 @@ function render(){
   // dial
   document.getElementById("mwnum").textContent=week;
   const pill=document.getElementById("mwpill"), desc=document.getElementById("mwdesc");
-  if(week<CUR){ pill.className="pill played"; pill.textContent="Played"; desc.textContent="Actual table, plus the projection the model would have made after this week."; }
-  else if(week===CUR && CUR_DONE){ pill.className="pill played"; pill.textContent="Latest"; desc.textContent="Most recent completed matchweek. Actual table, plus the current projection."; }
-  else if(week===CUR){ pill.className="pill live"; pill.textContent=`In progress · ${CUR_PLAYED} of 10`; desc.textContent="Actual table so far, plus the current projection."; }
-  else { pill.className="pill proj"; pill.textContent="Projected"; desc.textContent=`Where clubs are expected to stand after matchweek ${week}, based on today's ratings and the real fixture list.`; }
+  if(week<CUR){ pill.className="pill played"; pill.textContent=L("pPlayed"); desc.textContent=L("dPlayed"); }
+  else if(week===CUR && CUR_DONE){ pill.className="pill played"; pill.textContent=L("pLatest"); desc.textContent=L("dLatest"); }
+  else if(week===CUR){ pill.className="pill live"; pill.textContent=L("pLive")(CUR_PLAYED); desc.textContent=L("dLive"); }
+  else { pill.className="pill proj"; pill.textContent=L("pProj"); desc.textContent=L("dProj")(week); }
 
   renderTable(S,isPast,anchor);
   renderFocus(S,isPast,anchor,fi);
   renderFixtures();
   document.getElementById("rbody").innerHTML=TEAMS.map((_,i)=>i).sort((x,y)=>(S.att[y]/S.def[y])-(S.att[x]/S.def[x]))
-    .map(i=>`<tr${i===fi?' class="sel"':""}><td class="l team">${TEAMS[i]}</td><td>${S.att[i].toFixed(2)}</td><td>${S.def[i].toFixed(2)}</td></tr>`).join("");
+    .map(i=>`<tr${i===fi?' class="sel"':""}><td class="l team">${tn(TEAMS[i])}</td><td>${S.att[i].toFixed(2)}</td><td>${S.def[i].toFixed(2)}</td></tr>`).join("");
 }
 
 function renderTable(S,isPast,anchor){
   const thead=document.getElementById("thead"), tb=document.getElementById("tbody");
   tb.innerHTML="";
   if(isPast){
-    document.getElementById("tbl-title").textContent = week===CUR?"Table today, with current projection":`Table after matchweek ${week}, with projection made then`;
-    thead.innerHTML=`<tr><th class="grp a l" colspan="8">Actual after MW${week}</th><th class="grp p l sep" colspan="5">Projected final table, as of MW${week}</th></tr>
-      <tr><th class="l">#</th><th class="l">Club</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th>
-      <th class="sep">Exp. pts</th><th>Title</th><th>Top 4</th><th>Down</th><th>Final 1 → 20</th></tr>`;
+    document.getElementById("tbl-title").textContent = week===CUR?L("tblToday"):L("tblAfter")(week);
+    thead.innerHTML=`<tr><th class="grp a l" colspan="8">${L("hActual")(week)}</th><th class="grp p l sep" colspan="5">${L("hProjFinal")(week)}</th></tr>
+      <tr><th class="l">#</th><th class="l">${L("thClub")}</th><th>${L("thP")}</th><th>${L("thW")}</th><th>${L("thD")}</th><th>${L("thL")}</th><th>${L("thGD")}</th><th>${L("thPts")}</th>
+      <th class="sep">${L("expPts")}</th><th>${L("tTitle")}</th><th>${L("tTop4")}</th><th>${L("tDown")}</th><th>${L("tFinal")}</th></tr>`;
     const tbl=TABLES[week], prevRank=week>1?rankOf(TABLES[week-1]):null, rank=rankOf(tbl);
     rank.forEach((i,k)=>{
       const r=tbl[i], d=distAt(S,38,i), was=prevRank?prevRank.indexOf(i):k, mv=was-k;
       const mvh = mv>0?`<span class="mv up">▲${mv}</span>`:mv<0?`<span class="mv dn">▼${-mv}</span>`:"";
-      addRow(tb,i,k,`<td class="pos l">${k+1}</td><td class="team l">${TEAMS[i]}${mvh}</td><td>${r.P}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${gdOf(r)>0?"+":""}${gdOf(r)}</td><td class="b">${r.Pts}</td>
+      addRow(tb,i,k,`<td class="pos l">${k+1}</td><td class="team l">${tn(TEAMS[i])}${mvh}</td><td>${r.P}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${gdOf(r)>0?"+":""}${gdOf(r)}</td><td class="b">${r.Pts}</td>
         <td class="sep proj b">${expAt(S,38,i).toFixed(1)}</td>${pc(d[0])}${pc(sumP(d,0,4))}${pc(sumP(d,17,20))}<td>${strip(d,"p")}</td>`);
     });
     document.getElementById("tbl-note").textContent = week<CUR
-      ? `The projection columns only use results up to matchweek ${week}. Slide forward to see how it held up.`
-      : (CUR_DONE?"Latest results included.":"This matchweek's unplayed games are treated as unplayed in every simulation.")+" Click any row to make it your focus club.";
+      ? L("notePast")(week)
+      : (CUR_DONE?L("noteDone"):L("noteLive"))+L("noteClick");
   } else {
-    document.getElementById("tbl-title").textContent = week===38?"Projected final table":`Projected table after matchweek ${week}`;
-    thead.innerHTML=`<tr><th class="grp a l" colspan="3">Today</th><th class="grp p l sep" colspan="6">Projected after MW${week}</th></tr>
-      <tr><th class="l">#</th><th class="l">Club <span class="prev">25/26</span></th><th>Pts</th>
-      <th class="sep">Exp. pts</th><th>Likely range</th><th>${week===38?"Title":"1st"}</th><th>Top 4</th><th>Bottom 3</th><th>Position 1 → 20</th></tr>`;
+    document.getElementById("tbl-title").textContent = week===38?L("tblFinal"):L("tblProjAfter")(week);
+    thead.innerHTML=`<tr><th class="grp a l" colspan="3">${L("hToday")}</th><th class="grp p l sep" colspan="6">${L("hProjAfter")(week)}</th></tr>
+      <tr><th class="l">#</th><th class="l">${L("thClubPrev")}</th><th>${L("thPts")}</th>
+      <th class="sep">${L("expPts")}</th><th>${L("likely")}</th><th>${week===38?L("tTitle"):L("first")}</th><th>${L("tTop4")}</th><th>${L("bottom3")}</th><th>${L("posRange")}</th></tr>`;
     const nowT=TABLES[CUR], rows=TEAMS.map((_,i)=>i).sort((x,y)=>expAt(S,week,y)-expAt(S,week,x));
     rows.forEach((i,k)=>{
-      const d=distAt(S,week,i), prev=POS2526[TEAMS[i]]?ord(POS2526[TEAMS[i]]):"Promoted";
-      addRow(tb,i,k,`<td class="pos l">${k+1}</td><td class="team l">${TEAMS[i]}<span class="prev">${prev}</span></td><td>${nowT[i].Pts}</td>
+      const d=distAt(S,week,i), prev=POS2526[TEAMS[i]]?ord(POS2526[TEAMS[i]]):L("promoted");
+      addRow(tb,i,k,`<td class="pos l">${k+1}</td><td class="team l">${tn(TEAMS[i])}<span class="prev">${prev}</span></td><td>${nowT[i].Pts}</td>
         <td class="sep proj b">${expAt(S,week,i).toFixed(1)}</td><td class="proj">${pctlAt(S,week,i,.1)}–${pctlAt(S,week,i,.9)}</td>${pc(d[0])}${pc(sumP(d,0,4))}${pc(sumP(d,17,20))}<td>${strip(d,"p")}</td>`);
     });
-    document.getElementById("tbl-note").textContent = `Likely range covers 80% of simulated seasons. ${(+document.getElementById("sims").value).toLocaleString()} seasons simulated from today.`;
+    document.getElementById("tbl-note").textContent = L("noteFuture")(num(document.getElementById("sims").value));
   }
 }
 const pc = v => `<td class="pct ${v>=.05?"on":""}">${pct(v)}%</td>`;
@@ -419,25 +541,25 @@ function addRow(tb,i,k,html){
 }
 
 function renderFocus(S,isPast,anchor,fi){
-  document.getElementById("f-team").textContent=focus;
+  document.getElementById("f-team").textContent=tn(focus);
   const dFinal=distAt(S,38,fi), expFinal=expAt(S,38,fi);
   const finalRank = TEAMS.map((_,i)=>i).sort((x,y)=>expAt(S,38,y)-expAt(S,38,x)).indexOf(fi)+1;
   if(isPast){
     const tbl=TABLES[week], r=tbl[fi], pos=rankOf(tbl).indexOf(fi)+1;
-    document.getElementById("f-eyebrow").textContent = week===CUR?"Today":`After matchweek ${week}`;
-    document.getElementById("f-line").innerHTML = `Actually <b>${ord(pos)}</b> on <b>${r.Pts}</b> pts. Projected to finish <b>${ord(finalRank)}</b> on <b>${expFinal.toFixed(1)}</b> (range ${pctlAt(S,38,fi,.1)}–${pctlAt(S,38,fi,.9)}).`;
-    document.getElementById("chips-lab").textContent = week===CUR?"Final-table chances, today":`Final-table chances, as seen after MW${week}`;
+    document.getElementById("f-eyebrow").textContent = week===CUR?L("fToday"):L("fAfter")(week);
+    document.getElementById("f-line").innerHTML = L("fLinePast")(ord(pos), r.Pts, ord(finalRank), expFinal.toFixed(1), pctlAt(S,38,fi,.1), pctlAt(S,38,fi,.9));
+    document.getElementById("chips-lab").textContent = week===CUR?L("chipsToday"):L("chipsAfter")(week);
   } else {
     const rk=TEAMS.map((_,i)=>i).sort((x,y)=>expAt(S,week,y)-expAt(S,week,x)).indexOf(fi)+1;
-    document.getElementById("f-eyebrow").textContent = `Projected after matchweek ${week}`;
-    document.getElementById("f-line").innerHTML = `Expected <b>${ord(rk)}</b> on <b>${expAt(S,week,fi).toFixed(1)}</b> pts (range ${pctlAt(S,week,fi,.1)}–${pctlAt(S,week,fi,.9)}). Final: <b>${ord(finalRank)}</b>, <b>${expFinal.toFixed(1)}</b> pts.`;
-    document.getElementById("chips-lab").textContent = "Final-table chances, today";
+    document.getElementById("f-eyebrow").textContent = L("fProjAfter")(week);
+    document.getElementById("f-line").innerHTML = L("fLineFut")(ord(rk), expAt(S,week,fi).toFixed(1), pctlAt(S,week,fi,.1), pctlAt(S,week,fi,.9), ord(finalRank), expFinal.toFixed(1));
+    document.getElementById("chips-lab").textContent = L("chipsToday");
   }
   const chip=(k,v,hot)=>`<div class="chip ${hot?"hot":""}"><span class="v">${pct(v)}%</span><span class="k">${k}</span></div>`;
-  document.getElementById("chips").innerHTML = chip("Title",dFinal[0],dFinal[0]>=.1)+chip("Top 4",sumP(dFinal,0,4),sumP(dFinal,0,4)>=.5)+chip("Top 5",sumP(dFinal,0,5),false)+chip("Relegated",sumP(dFinal,17,20),sumP(dFinal,17,20)>=.1);
+  document.getElementById("chips").innerHTML = chip(L("cTitle"),dFinal[0],dFinal[0]>=.1)+chip(L("cTop4"),sumP(dFinal,0,4),sumP(dFinal,0,4)>=.5)+chip(L("cTop5"),sumP(dFinal,0,5),false)+chip(L("cReleg"),sumP(dFinal,17,20),sumP(dFinal,17,20)>=.1);
   drawTraj(S,anchor,fi);
   const r = isPast?38:week, d = distAt(S,r,fi);
-  document.getElementById("dist-lab").textContent = isPast?`Final position, % of seasons simulated after MW${week}`:`Position after MW${week}, % of simulated seasons`;
+  document.getElementById("dist-lab").textContent = isPast?L("distPast")(week):L("distFut")(week);
   drawDist(d);
 }
 
@@ -449,7 +571,7 @@ function drawTraj(S,anchor,fi){
   const x=w=>L+(W-L-R)*w/38, y=p=>T+(Hh-T-B)*(1-p/ymax);
   let s="";
   for(let p=0;p<=ymax;p+=20) s+=`<line x1="${L}" x2="${W-R}" y1="${y(p)}" y2="${y(p)}" stroke="var(--line)"/><text x="${L-5}" y="${y(p)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${p}</text>`;
-  for(const w of [1,10,19,29,38]) s+=`<text x="${x(w)}" y="${Hh-6}" text-anchor="${w===38?"end":w===1?"start":"middle"}" font-size="11" fill="var(--muted)">MW${w}</text>`;
+  for(const w of [1,10,19,29,38]) s+=`<text x="${x(w)}" y="${Hh-6}" text-anchor="${w===38?"end":w===1?"start":"middle"}" font-size="11" fill="var(--muted)">${tx("mwShort")(w)}</text>`;
   // projection band from anchor
   const start=[anchor,hist[Math.min(anchor,CUR)]];
   const pts=[[start[0],start[1],start[1],start[1]],...band.filter(b=>b[0]>anchor || (b[0]===anchor&&anchor===CUR))];
@@ -467,9 +589,9 @@ function drawTraj(S,anchor,fi){
   if(week>CUR){ const b=band.find(b=>b[0]===week); if(b) s+=`<circle cx="${x(week)}" cy="${y(expAt(S,week,fi))}" r="4" fill="var(--proj)"/><text x="${Math.min(x(week)+6,W-R-28)}" y="${y(expAt(S,week,fi))-8}" font-size="12" font-weight="600" fill="var(--proj)">${expAt(S,week,fi).toFixed(0)}</text>`; }
   const fin=band.find(b=>b[0]===38); if(fin) s+=`<text x="${W-R}" y="${y(fin[2])-6}" text-anchor="end" font-size="12" font-weight="600" fill="var(--proj)">${fin[2]}</text>`;
   document.getElementById("traj").innerHTML=s;
-  document.getElementById("trajkey").innerHTML = `<span style="--c:var(--accent)">Actual points</span>`
-    + (week<CUR?`<span style="--c:var(--accent);opacity:.5">What happened next</span>`:"")
-    + `<span style="--c:var(--proj)">Projected median</span><span class="area" style="--c:var(--proj-soft)">80% range</span>`;
+  document.getElementById("trajkey").innerHTML = `<span style="--c:var(--accent)">${tx("kActual")}</span>`
+    + (week<CUR?`<span style="--c:var(--accent);opacity:.5">${tx("kNext")}</span>`:"")
+    + `<span style="--c:var(--proj)">${tx("kMedian")}</span><span class="area" style="--c:var(--proj-soft)">${tx("kRange")}</span>`;
 }
 
 function drawDist(d){
@@ -489,24 +611,24 @@ function renderFixtures(){
   const pre = ratings(Math.min(week,CUR+1)-1, fw);     // ratings going into this week
   const nowR = ratings(CUR, fw);
   const done = PLAYED.filter(g=>g[0]===week), todo = FUTURE.filter(f=>f[0]===week);
-  document.getElementById("fx-title").textContent = `Matchweek ${week} games`;
+  document.getElementById("fx-title").textContent = L("fxTitle")(week);
   const bar=(m,hit)=>{ const w=v=>(v*100).toFixed(1), cls=c=>hit===c?"hit":"";
     return `<div class="bar3 ${hit?"res":""}"><div class="h ${cls("H")}" style="flex-basis:${w(m.H)}%">${Math.round(m.H*100)}</div><div class="d ${cls("D")}" style="flex-basis:${w(m.D)}%">${Math.round(m.D*100)}</div><div class="a ${cls("A")}" style="flex-basis:${w(m.A)}%">${Math.round(m.A*100)}</div></div>`; };
   let html="";
   for(const [,h,gh,ga,a] of done){
     const m=matchProbs(h,a,pre), hit=gh>ga?"H":gh<ga?"A":"D", sel=TEAMS[h]===focus||TEAMS[a]===focus;
     const p = hit==="H"?m.H:hit==="A"?m.A:m.D;
-    html+=`<div class="fx ${sel?"sel":""}"><span class="fx-teams">${TEAMS[h]} <span class="sc">${gh}–${ga}</span> ${TEAMS[a]}</span><span class="fx-meta">pre-match ${Math.round(p*100)}% for this result</span>${bar(m,hit)}</div>`;
+    html+=`<div class="fx ${sel?"sel":""}"><span class="fx-teams">${tn(TEAMS[h])} <span class="sc">${gh}–${ga}</span> ${tn(TEAMS[a])}</span><span class="fx-meta">${L("fxPre")(Math.round(p*100))}</span>${bar(m,hit)}</div>`;
   }
   for(const [,h,a] of todo){
     const m=matchProbs(h,a,nowR), sel=TEAMS[h]===focus||TEAMS[a]===focus;
-    html+=`<div class="fx ${sel?"sel":""}"><span class="fx-teams">${TEAMS[h]} v ${TEAMS[a]}</span><span class="fx-meta">likeliest ${m.best[0]}–${m.best[1]} · xG ${m.lh.toFixed(1)}–${m.la.toFixed(1)}</span>${bar(m,null)}</div>`;
+    html+=`<div class="fx ${sel?"sel":""}"><span class="fx-teams">${tn(TEAMS[h])} ${L("vs")} ${tn(TEAMS[a])}</span><span class="fx-meta">${L("fxLikely")(m.best[0],m.best[1],m.lh.toFixed(1),m.la.toFixed(1))}</span>${bar(m,null)}</div>`;
   }
   document.getElementById("fixtures").innerHTML=html;
   document.getElementById("fx-note").textContent = done.length&&todo.length
-    ? "Played games show the model's pre-match home / draw / away odds, with the actual outcome outlined. Unplayed games use today's ratings."
-    : done.length ? "Bars show the model's pre-match home / draw / away odds using only earlier results. The actual outcome is outlined."
-    : "Home / draw / away odds from today's ratings.";
+    ? L("fxNoteBoth")
+    : done.length ? L("fxNoteDone")
+    : L("fxNoteTodo");
 }
 
 // ---------- Controls ----------
@@ -517,12 +639,12 @@ function setWeek(k){
   week=k; syncSteps(); document.getElementById("mw").value=k;
   const anchor=k<=CUR?k:CUR, sims=+document.getElementById("sims").value, fw=+document.getElementById("form").value;
   const st=document.getElementById("status");
-  if(!cache[`${anchor}|${sims}|${fw}`]){ st.textContent="Simulating…"; setTimeout(()=>{ const t0=performance.now(); getSim(anchor); st.textContent=`${sims.toLocaleString()} seasons in ${((performance.now()-t0)/1000).toFixed(1)}s`; render(); },15); }
+  if(!cache[`${anchor}|${sims}|${fw}`]){ st.textContent=L("simulating"); setTimeout(()=>{ const t0=performance.now(); getSim(anchor); st.textContent=L("simDone")(num(sims),((performance.now()-t0)/1000).toFixed(1)); render(); },15); }
   else render();
 }
 const sel=document.getElementById("team");
-[...TEAMS].sort().forEach(t=>{ const o=document.createElement("option"); o.textContent=t; sel.appendChild(o); });
-sel.value=focus; sel.addEventListener("change",e=>setFocus(e.target.value));
+function fillTeams(){ sel.innerHTML=""; [...TEAMS].sort((a,b)=>tn(a).localeCompare(tn(b),LANG)).forEach(t=>{ const o=document.createElement("option"); o.value=t; o.textContent=tn(t); sel.appendChild(o); }); sel.value=focus; }
+sel.addEventListener("change",e=>setFocus(e.target.value));
 const formEl=document.getElementById("form"), formV=document.getElementById("formv");
 formEl.addEventListener("input",()=>formV.textContent=formEl.value+"×");
 formEl.addEventListener("change",()=>{ cache={}; setWeek(week); });
@@ -534,17 +656,40 @@ document.addEventListener("keydown",e=>{
   const t=e.target; if(t && (t.matches("input,select,textarea") || t.isContentEditable)) return;
   if(e.key==="ArrowLeft"){ e.preventDefault(); stepWeek(-1); } else if(e.key==="ArrowRight"){ e.preventDefault(); stepWeek(1); }
 });
-document.getElementById("ticks").innerHTML=[...new Set([1,CUR,19,29,38])].sort((a,b)=>a-b).filter(w=>w===CUR||Math.abs(w-CUR)>3).map(w=>`<span class="${w===CUR?"now":""}" style="left:${((w-1)/37*100).toFixed(2)}%">${w===CUR?"Now · "+CUR:w}</span>`).join("");
 const playBtn=document.getElementById("play");
-function stopPlay(){ if(playing){ clearInterval(playing); playing=null; playBtn.textContent="▶ Play"; } }
+function stopPlay(){ if(playing){ clearInterval(playing); playing=null; playBtn.textContent=L("play"); } }
 playBtn.addEventListener("click",()=>{
   if(playing) return stopPlay();
   if(week>=38) setWeek(1);
-  playBtn.textContent="❚❚ Pause";
+  playBtn.textContent=L("pause");
   playing=setInterval(()=>{ if(week>=38) return stopPlay(); setWeek(week+1); },900);
 });
-document.getElementById("asof").innerHTML=`${PLAYED.length} of 380 matches played · Matchweek ${CUR} ${CUR_DONE?"complete":"in progress"}<br>Data as of ${D.asof}`;
-document.getElementById("log").innerHTML=D.log.slice().reverse().map(e=>`<li><time>${new Date(e.date+"T12:00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}</time><span>${e.note}</span></li>`).join("");
+function asofText(){
+  if(LANG!=="ko" || !D.asof_iso) return D.asof;
+  if(D.asof_iso.includes("T")) return new Date(D.asof_iso).toLocaleString("ko-KR",{timeZone:"Asia/Seoul",month:"long",day:"numeric",weekday:"short",hour:"numeric",minute:"2-digit"})+" (한국 시간)";
+  return new Date(D.asof_iso+"T12:00:00").toLocaleDateString("ko-KR",{year:"numeric",month:"long",day:"numeric",weekday:"short"})+" (미국 동부 기준)";
+}
+function chrome(){
+  document.documentElement.lang = LANG;
+  document.title = L("title");
+  const md=document.querySelector('meta[name="description"]'); if(md) md.setAttribute("content", L("desc"));
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ el.innerHTML = L(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-aria]").forEach(el=>{ el.setAttribute("aria-label", L(el.dataset.i18nAria)); });
+  document.querySelectorAll(".langbar button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.lang===LANG)));
+  fillTeams();
+  playBtn.textContent = playing ? L("pause") : L("play");
+  document.getElementById("ticks").innerHTML=[...new Set([1,CUR,19,29,38])].sort((a,b)=>a-b).filter(w=>w===CUR||Math.abs(w-CUR)>3).map(w=>`<span class="${w===CUR?"now":""}" style="left:${((w-1)/37*100).toFixed(2)}%">${w===CUR?L("now")+" · "+CUR:w}</span>`).join("");
+  document.getElementById("asof").innerHTML=L("asof")(PLAYED.length, CUR, CUR_DONE, asofText());
+  document.getElementById("log").innerHTML=D.log.slice().reverse().map(e=>`<li><time>${new Date(e.date+"T12:00:00").toLocaleDateString(L("locale"),{weekday:"short",day:"numeric",month:"short"})}</time><span>${LANG==="ko"&&e.note_ko?e.note_ko:e.note}</span></li>`).join("");
+  document.getElementById("status").textContent="";
+}
+function setLang(l){
+  if(l===LANG) return; LANG=l; try{ localStorage.setItem("plsim-lang", l); }catch(e){}
+  try{ const u=new URL(location.href); if(u.searchParams.has("lang")){ u.searchParams.set("lang", l); history.replaceState(null,"",u); } }catch(e){}
+  chrome(); render();
+}
+document.querySelectorAll(".langbar button").forEach(b=>b.addEventListener("click",()=>setLang(b.dataset.lang)));
+chrome();
 setWeek(CUR);
 
 // ---------- Visitor stats (GoatCounter public counter) ----------

@@ -1,0 +1,84 @@
+name: Update results
+
+# Every 15 minutes from 11:00 to 23:59 UTC (all Premier League kick-off windows),
+# plus a monthly keep-alive so GitHub doesn't pause the schedule over the summer.
+on:
+  schedule:
+    - cron: "7,22,37,52 11-23 * * *"
+    - cron: "41 9 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+  pages: write
+
+concurrency:
+  group: update-results
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.event.schedule != '41 9 1 * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Look for new results
+        id: robot
+        env:
+          FD_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
+        run: |
+          set +e
+          node .github/scripts/update-results.mjs
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Publish
+        if: steps.robot.outputs.code == '0' && hashFiles('.robot/commit.txt') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "MORIMIRO"
+          git config user.email "noreply@morimiro.com"
+          git add index.html
+          git commit -F .robot/commit.txt
+          git pull --rebase origin main
+          git push origin main
+          # Ask GitHub Pages to rebuild (pushes made by this workflow may not trigger it on their own).
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" >/dev/null 2>&1 || true
+
+      - name: Report a problem
+        if: steps.robot.outputs.code != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Results robot needs a look"
+          if [ ! -f .robot/problem.md ]; then echo "The robot exited with code ${{ steps.robot.outputs.code }} without a report; see the run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" > .robot/problem.md; fi
+          num=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [ -n "$num" ]; then
+            # Only comment when the problem text changed, to avoid noise every 15 minutes.
+            last=$(gh issue view "$num" --json body,comments --jq '(.comments | last | .body) // .body')
+            if [ "$last" != "$(cat .robot/problem.md)" ]; then gh issue comment "$num" --body-file .robot/problem.md; fi
+          else
+            gh issue create --title "$title" --body-file .robot/problem.md
+          fi
+
+      - name: Close a solved problem
+        if: steps.robot.outputs.code == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          num=$(gh issue list --state open --search "\"Results robot needs a look\" in:title" --json number --jq '.[0].number')
+          if [ -n "$num" ]; then gh issue close "$num" --comment "Everything agrees again; the robot is publishing normally."; fi
+
+  keepalive:
+    if: github.event.schedule == '41 9 1 * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Keep the schedule active
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/update-results.yml/enable"
